@@ -80,6 +80,26 @@ function AppHeader() {
         </nav>
 
         <div className="flex items-center gap-sm">
+          {!isStylistView && (
+            <button
+              className="btn btn-ghost btn-sm hide-mobile"
+              onClick={() => {
+                const token = localStorage.getItem('authToken');
+                if (token) {
+                  localStorage.removeItem('authToken');
+                  localStorage.removeItem('userId');
+                  localStorage.removeItem('userName');
+                  window.location.reload();
+                } else {
+                  // Simulate opening auth modal (since we don't have global state, we just navigate to a page that forces login, or alert)
+                  alert('デバッグパネルから「ログアウト(Auth解除)」するか、美容師の予約画面からログインモーダルを呼び出してください');
+                }
+              }}
+            >
+              {localStorage.getItem('authToken') ? 'ログアウト' : 'ログイン'}
+            </button>
+          )}
+
           <button
             className="btn btn-ghost btn-sm"
             onClick={() => navigate(isStylistView ? '/' : '/stylist/dashboard')}

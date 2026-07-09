@@ -68,6 +68,7 @@ class QuestionnaireCreate(BaseModel):
     previous_chemicals: str = Field(default="", description="Previously used chemicals/agents")
     perm_feasibility_notes: str = Field(default="", description="Notes about perm feasibility")
     black_dye_count: int = Field(default=0, ge=0, le=20, description="Total black dye treatments")
+    salon_vibe: str = Field(default="気にしない・美容師におまかせ", description="Preferences for how to spend time at the salon")
 
 
 class QuestionnaireResponse(QuestionnaireCreate):

@@ -53,6 +53,7 @@ const DEMO_RECIPE = {
     current_hair_color: 'ブラウン（レベル8）',
     damage_level: 3,
     desired_style: 'ミルクティーベージュのハイトーン',
+    salon_vibe: '気にしない・美容師におまかせ',
   },
 };
 
@@ -85,6 +86,7 @@ export default function RecipeViewPage() {
           current_hair_color: '自己申告ベース',
           damage_level: parseInt(parsed.hair_summary.split(' / ')[2]?.replace('ダメージLv', '')) || 1,
           desired_style: parsed.desired_style,
+          salon_vibe: parsed.salon_vibe || '気にしない・美容師におまかせ',
         };
         (defaultRec as any).refined_details = parsed.refined_details || [];
         (defaultRec as any).chat_history = parsed.chat_history || [];
@@ -266,8 +268,14 @@ export default function RecipeViewPage() {
                 <div className="flex justify-between border-b pb-xs border-subtle">
                   <span className="text-secondary">縮毛矯正</span><span className="font-semibold">{recipe.customer.has_straightening ? 'あり' : 'なし'}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between border-b pb-xs border-subtle">
                   <span className="text-secondary">ダメージレベル</span><span className="font-semibold">{recipe.customer.damage_level}/5</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-secondary">過ごし方のご希望</span>
+                  <span className="font-semibold text-primary-light" style={{ maxWidth: '60%', textAlign: 'right', lineHeight: 1.3 }}>
+                    {recipe.customer.salon_vibe}
+                  </span>
                 </div>
               </div>
               

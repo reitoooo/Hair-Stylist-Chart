@@ -46,6 +46,7 @@ export interface QuestionnaireData {
   previous_chemicals: string;
   perm_feasibility_notes: string;
   black_dye_count: number;
+  salon_vibe: string;
 }
 
 export interface Questionnaire extends QuestionnaireData {
@@ -342,4 +343,11 @@ export const PERM_DATE_OPTIONS = [
   { value: '6months', label: '半年以内' },
   { value: '1year', label: '1年以内' },
   { value: 'over1year', label: '1年以上前' },
+];
+
+export const SALON_VIBE_OPTIONS = [
+  { value: '気にしない・美容師におまかせ', label: '気にしない・美容師におまかせ', icon: '🍃' },
+  { value: '静かに過ごしたい', label: '静かに過ごしたい（雑誌やスマホを見たい・ゆっくり休みたい）', icon: '🎧' },
+  { value: '髪の悩みやお手入れについてだけ話したい', label: '髪の悩みやお手入れについてだけ話したい', icon: '💇‍♀️' },
+  { value: '楽しく会話したい', label: '楽しく会話したい', icon: '🗣️' },
 ];

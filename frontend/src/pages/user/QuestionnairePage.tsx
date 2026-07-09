@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, Check, AlertTriangle, Shield } from 'lucide-react';
 import type { QuestionnaireData, HairLength, AllergyChecklistData } from '../../types';
-import { HAIR_LENGTH_LABELS, DAMAGE_LEVEL_LABELS, STRAIGHTENING_DATE_OPTIONS, PERM_DATE_OPTIONS } from '../../types';
+import { HAIR_LENGTH_LABELS, DAMAGE_LEVEL_LABELS, STRAIGHTENING_DATE_OPTIONS, PERM_DATE_OPTIONS, SALON_VIBE_OPTIONS } from '../../types';
 
 const INITIAL_DATA: QuestionnaireData = {
   hair_length: 'medium',
@@ -22,6 +22,7 @@ const INITIAL_DATA: QuestionnaireData = {
   previous_chemicals: '',
   perm_feasibility_notes: '',
   black_dye_count: 0,
+  salon_vibe: '気にしない・美容師におまかせ',
 };
 
 const INITIAL_ALLERGY: AllergyChecklistData = {
@@ -50,6 +51,7 @@ export default function QuestionnairePage() {
     { label: '詳細履歴', key: 'detail_history' },
     { label: '現在の状態', key: 'condition' },
     { label: 'アレルギー', key: 'allergy' },
+    { label: '過ごし方', key: 'vibe' },
     { label: '確認', key: 'confirm' },
   ];
 
@@ -561,8 +563,39 @@ export default function QuestionnairePage() {
             </div>
           )}
 
-          {/* Step 5: Confirmation */}
+          {/* Step 5: Salon Vibe (NEW) */}
           {step === 5 && (
+            <div>
+              <h2 style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 700, marginBottom: 'var(--space-sm)' }}>
+                サロンでの過ごし方のご希望
+              </h2>
+              <p className="text-secondary text-sm" style={{ marginBottom: 'var(--space-xl)' }}>
+                美容室での時間をどのように過ごしたいか教えてください
+              </p>
+
+              <div className="flex flex-col gap-sm">
+                {SALON_VIBE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    className={`btn ${data.salon_vibe === opt.value ? 'btn-primary' : 'btn-secondary'} btn-full`}
+                    onClick={() => setData({ ...data, salon_vibe: opt.value })}
+                    style={{
+                      justifyContent: 'flex-start',
+                      padding: '1rem 1.25rem',
+                      fontSize: 'var(--font-size-md)',
+                      textAlign: 'left'
+                    }}
+                  >
+                    <span style={{ fontSize: '1.2rem', marginRight: 'var(--space-sm)' }}>{opt.icon}</span>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Step 6: Confirmation */}
+          {step === 6 && (
             <div>
               <h2 style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 700, marginBottom: 'var(--space-sm)' }}>
                 入力内容の確認
@@ -624,6 +657,12 @@ export default function QuestionnairePage() {
                       <span style={{ maxWidth: '200px', textAlign: 'right' }}>{data.previous_chemicals}</span>
                     </div>
                   )}
+                  <div className="flex justify-between" style={{ marginTop: 'var(--space-xs)', paddingTop: 'var(--space-xs)', borderTop: '1px solid var(--border-default)' }}>
+                    <span className="text-secondary">過ごし方のご希望</span>
+                    <span style={{ maxWidth: '200px', textAlign: 'right', fontWeight: 600, color: 'var(--color-primary-light)' }}>
+                      {SALON_VIBE_OPTIONS.find(o => o.value === data.salon_vibe)?.label || data.salon_vibe}
+                    </span>
+                  </div>
                 </div>
               </div>
 

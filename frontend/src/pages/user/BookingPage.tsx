@@ -67,6 +67,7 @@ export default function BookingPage() {
       status: 'pending' as const,
       hair_summary: qData ? `${hairLen} / ブリーチ${qData.bleach_count}回 / ダメージLv${qData.damage_level}` : 'ミディアム / ブリーチ0回 / ダメージLv1',
       desired_style: desiredStyle ? desiredStyle.description : 'AI提案スタイル',
+      salon_vibe: qData?.salon_vibe || '気にしない・美容師におまかせ',
       refined_details: desiredStyle?.refined_details || [],
       chat_history: desiredStyle?.chat_history || [],
       created_at: new Date().toISOString()
