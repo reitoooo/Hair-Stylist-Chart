@@ -61,8 +61,8 @@ export default function QuestionnairePage() {
       setStep(step + 1);
     } else {
       const qId = `q-${Date.now()}`;
-      sessionStorage.setItem('questionnaire', JSON.stringify({ ...data, id: qId }));
-      sessionStorage.setItem('allergyChecklist', JSON.stringify({ ...allergyData, questionnaire_id: qId }));
+      localStorage.setItem('questionnaire', JSON.stringify({ ...data, id: qId }));
+      localStorage.setItem('allergyChecklist', JSON.stringify({ ...allergyData, questionnaire_id: qId }));
       navigate('/style-choice');
     }
   };

@@ -24,7 +24,7 @@ function AppHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isStylistView = location.pathname.startsWith('/stylist/');
-  const isPremiumUser = sessionStorage.getItem('isPremiumUser') === 'true';
+  const isPremiumUser = localStorage.getItem('isPremiumUser') === 'true';
 
   return (
     <header className="app-header">
@@ -138,17 +138,17 @@ function DebugPanel() {
   const [open, setOpen] = useState(false);
 
   const clearData = () => {
-    sessionStorage.removeItem('questionnaire');
-    sessionStorage.removeItem('desiredStyle');
-    sessionStorage.removeItem('allergyChecklist');
-    sessionStorage.removeItem('lastBooking');
+    localStorage.removeItem('questionnaire');
+    localStorage.removeItem('desiredStyle');
+    localStorage.removeItem('allergyChecklist');
+    localStorage.removeItem('lastBooking');
     alert('問診データとスタイル選択データを消去しました。');
     window.location.reload();
   };
 
   const togglePremium = () => {
-    const isPremium = sessionStorage.getItem('isPremiumUser') === 'true';
-    sessionStorage.setItem('isPremiumUser', isPremium ? 'false' : 'true');
+    const isPremium = localStorage.getItem('isPremiumUser') === 'true';
+    localStorage.setItem('isPremiumUser', isPremium ? 'false' : 'true');
     alert(`プレミアムプランを ${isPremium ? 'オフ' : 'オン'} にしました。`);
     window.location.reload();
   };

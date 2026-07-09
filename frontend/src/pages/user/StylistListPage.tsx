@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, MapPin, Clock, Award, Search, SlidersHorizontal } from 'lucide-react';
-import type { StylistProfile } from '../../types';
+import { Star, MapPin, Clock, Award, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
+import type { StylistProfile, QuestionnaireData } from '../../types';
 
 // Demo stylist data (mirrors backend seed data)
 const DEMO_STYLISTS: StylistProfile[] = [
@@ -108,10 +108,78 @@ export default function StylistListPage() {
   const navigate = useNavigate();
   const [stylists] = useState<StylistProfile[]>(DEMO_STYLISTS);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'rating' | 'experience' | 'reviews'>('rating');
+  const [sortBy, setSortBy] = useState<'match' | 'rating' | 'experience' | 'reviews'>('match');
   const [showFilters, setShowFilters] = useState(false);
+  const [questionnaire, setQuestionnaire] = useState<QuestionnaireData | null>(null);
 
-  const filtered = stylists
+  useEffect(() => {
+    const qData = localStorage.getItem('questionnaire');
+    if (qData) {
+      setQuestionnaire(JSON.parse(qData));
+    }
+  }, []);
+
+  const calculateMatchScore = (stylist: StylistProfile): { score: number; reason: string | null } => {
+    if (!questionnaire) return { score: 50, reason: null }; // Default score if no data
+
+    let score = 50; // Base score
+    const reasons: string[] = [];
+
+    // Rule 1: High Damage / Bleach
+    if (questionnaire.damage_level >= 4 || questionnaire.bleach_count >= 3) {
+      if (stylist.specialties.includes('damage_repair') || stylist.specialties.includes('care_bleach')) {
+        score += 30;
+        reasons.push('ハイダメージケアの専門家です');
+      } else {
+        score -= 20; // Penalize if they don't have damage repair skills for high damage clients
+      }
+    }
+
+    // Rule 2: Black Dye History
+    if (questionnaire.has_black_dye) {
+      if (stylist.specialties.includes('color_correction') || stylist.specialties.includes('dark_to_light')) {
+        score += 35;
+        reasons.push('複雑な黒染め修正が得意です');
+      } else {
+        score -= 20; // Penalize for black dye if no correction skills
+      }
+    }
+
+    // Rule 3: Straightening + Bleach (High Risk)
+    if (questionnaire.has_straightening && questionnaire.bleach_count > 0) {
+      if (stylist.specialties.includes('damage_repair')) {
+        score += 20;
+        reasons.push('縮毛矯正×ブリーチ毛の扱いが得意です');
+      }
+    }
+
+    // Rule 4: Match desired style color (mock check based on specialties)
+    const desiredStyleStr = localStorage.getItem('desiredStyle');
+    if (desiredStyleStr) {
+      const desiredStyle = JSON.parse(desiredStyleStr);
+      if (desiredStyle.description?.includes('アッシュ') || desiredStyle.description?.includes('透明感')) {
+        if (stylist.specialties.includes('transparent_color')) {
+          score += 15;
+          reasons.push('ご希望の透明感カラーが得意です');
+        }
+      }
+    }
+
+    // Add rating bonus (up to 10 points)
+    score += (stylist.rating - 4.0) * 10;
+
+    return { 
+      score: Math.min(Math.max(Math.round(score), 10), 98), // Cap between 10 and 98 (98 looks more realistic than 100)
+      reason: reasons.length > 0 ? reasons[0] : null 
+    };
+  };
+
+  const stylistsWithScores = stylists.map(s => ({
+    ...s,
+    match: calculateMatchScore(s)
+  }));
+
+  const filtered = stylistsWithScores
     .filter((s) => {
       if (!searchQuery) return true;
       const q = searchQuery.toLowerCase();
@@ -123,6 +191,7 @@ export default function StylistListPage() {
       );
     })
     .sort((a, b) => {
+      if (sortBy === 'match') return b.match.score - a.match.score;
       if (sortBy === 'experience') return b.years_experience - a.years_experience;
       if (sortBy === 'reviews') return b.review_count - a.review_count;
       return b.rating - a.rating;
@@ -178,6 +247,7 @@ export default function StylistListPage() {
             <div className="flex gap-sm flex-wrap">
               <span className="text-secondary text-sm" style={{ alignSelf: 'center' }}>並び替え:</span>
               {[
+                { key: 'match' as const, label: 'おすすめ順 (AI)' },
                 { key: 'rating' as const, label: '評価順' },
                 { key: 'experience' as const, label: '経験年数順' },
                 { key: 'reviews' as const, label: 'レビュー数順' },
@@ -208,7 +278,30 @@ export default function StylistListPage() {
               className="stylist-card animate-fade-in-up"
               onClick={() => navigate(`/stylists/${stylist.id}`)}
             >
-              <div className="flex gap-lg" style={{ flexWrap: 'wrap' }}>
+              <div className="flex gap-lg" style={{ flexWrap: 'wrap', position: 'relative' }}>
+                {/* AI Match Badge */}
+                {questionnaire && stylist.match.score >= 80 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '-10px',
+                    right: '-10px',
+                    background: 'var(--gradient-primary)',
+                    color: 'white',
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: 'var(--radius-full)',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    boxShadow: 'var(--shadow-glow)',
+                    zIndex: 2
+                  }}>
+                    <Sparkles size={12} />
+                    マッチ度 {stylist.match.score}%
+                  </div>
+                )}
+
                 {/* Avatar */}
                 <div className="stylist-avatar">
                   {stylist.display_name.charAt(0)}
@@ -227,7 +320,7 @@ export default function StylistListPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-md text-sm text-secondary" style={{ marginBottom: 'var(--space-sm)' }}>
+                  <div className="flex items-center gap-md text-sm text-secondary" style={{ marginBottom: 'var(--space-xs)' }}>
                     <span className="flex items-center gap-xs">
                       <MapPin size={14} />
                       {stylist.location}
@@ -241,6 +334,25 @@ export default function StylistListPage() {
                       {stylist.product_brands.length}ブランド
                     </span>
                   </div>
+
+                  {/* Match Reason Highlight */}
+                  {questionnaire && stylist.match.reason && (
+                    <div style={{ 
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: 'rgba(139, 92, 246, 0.1)', 
+                      color: 'var(--text-accent)', 
+                      padding: '4px 8px', 
+                      borderRadius: '4px',
+                      fontSize: '0.7rem',
+                      fontWeight: 600,
+                      marginBottom: 'var(--space-sm)'
+                    }}>
+                      <Sparkles size={12} />
+                      {stylist.match.reason}
+                    </div>
+                  )}
 
                   <p className="text-secondary text-sm" style={{ marginBottom: 'var(--space-md)', lineHeight: 1.5 }}>
                     {stylist.bio}

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Sparkles, Upload, X, ImageIcon, ChevronRight, ChevronLeft, SlidersHorizontal, AlertTriangle, CheckCircle2, Send, Tag, Waves } from 'lucide-react';
 import type { QuestionnaireData } from '../../types';
 import { generateAIResponse, createInitialContext, type ChatContext } from '../../lib/aiChatEngine';
+import AuthModal from '../auth/AuthModal';
+import { desiredStyleApi, questionnaireApi } from '../../lib/api';
 
 type Step = 'upload' | 'analyzing' | 'simulator';
 type Gender = 'ladies' | 'mens';
@@ -50,6 +52,7 @@ export default function SuggestStylePage() {
   const [showWarning, setShowWarning] = useState(false);
   const [permWarning, setPermWarning] = useState('');
   const [regeneratingImage, setRegeneratingImage] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
 
   // Trigger image regeneration loader on style/color/perm change
   useEffect(() => {
@@ -95,7 +98,7 @@ export default function SuggestStylePage() {
   }, [chatMessages, isTyping]);
 
   useEffect(() => {
-    const saved = sessionStorage.getItem('questionnaire');
+    const saved = localStorage.getItem('questionnaire');
     if (saved) {
       const parsed = JSON.parse(saved);
       setQData(parsed);
@@ -214,7 +217,7 @@ export default function SuggestStylePage() {
     const colorHex = HAIR_COLORS.find(c => c.id === selectedColor)?.hex;
     const permName = PERM_STYLES.find(p => p.id === selectedPerm)?.name;
 
-    sessionStorage.setItem(
+    localStorage.setItem(
       'desiredStyle',
       JSON.stringify({
         id: `style-ai-${Date.now()}`,
@@ -227,9 +230,38 @@ export default function SuggestStylePage() {
         chat_history: chatMessages
       }),
     );
-    const redirectUrl = sessionStorage.getItem('redirectAfterStyleSelection');
+    
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setShowAuth(true);
+    } else {
+      syncAndNavigate();
+    }
+  };
+
+  const syncAndNavigate = async () => {
+    // Simulate syncing to backend
+    const qData = localStorage.getItem('questionnaire');
+    if (qData) {
+      try {
+        await questionnaireApi.create(JSON.parse(qData));
+      } catch (e) {
+        console.error("Failed to sync questionnaire", e);
+      }
+    }
+    
+    const styleData = localStorage.getItem('desiredStyle');
+    if (styleData) {
+      try {
+        await desiredStyleApi.create(JSON.parse(styleData));
+      } catch (e) {
+        console.error("Failed to sync style", e);
+      }
+    }
+
+    const redirectUrl = localStorage.getItem('redirectAfterStyleSelection');
     if (redirectUrl) {
-      sessionStorage.removeItem('redirectAfterStyleSelection');
+      localStorage.removeItem('redirectAfterStyleSelection');
       navigate(redirectUrl);
     } else {
       navigate('/stylists');
@@ -728,6 +760,16 @@ export default function SuggestStylePage() {
           </div>
 
         </div>
+      )}
+
+      {showAuth && (
+        <AuthModal
+          onClose={() => setShowAuth(false)}
+          onSuccess={() => {
+            setShowAuth(false);
+            syncAndNavigate();
+          }}
+        />
       )}
     </div>
   );

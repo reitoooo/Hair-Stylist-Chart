@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, X, Image as ImageIcon, ChevronRight, ChevronLeft } from 'lucide-react';
+import AuthModal from '../auth/AuthModal';
+import { desiredStyleApi, questionnaireApi } from '../../lib/api';
 
 export default function StyleUploadPage() {
   const navigate = useNavigate();
@@ -8,6 +10,7 @@ export default function StyleUploadPage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [description, setDescription] = useState('');
   const [dragOver, setDragOver] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
 
   const handleFile = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) return;
@@ -29,8 +32,8 @@ export default function StyleUploadPage() {
   );
 
   const handleSubmit = () => {
-    // Store style data and navigate to stylist list
-    sessionStorage.setItem(
+    // Store style data locally
+    localStorage.setItem(
       'desiredStyle',
       JSON.stringify({
         id: `style-${Date.now()}`,
@@ -38,9 +41,38 @@ export default function StyleUploadPage() {
         description,
       }),
     );
-    const redirectUrl = sessionStorage.getItem('redirectAfterStyleSelection');
+
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setShowAuth(true);
+    } else {
+      syncAndNavigate();
+    }
+  };
+
+  const syncAndNavigate = async () => {
+    // Simulate syncing to backend
+    const qData = localStorage.getItem('questionnaire');
+    if (qData) {
+      try {
+        await questionnaireApi.create(JSON.parse(qData));
+      } catch (e) {
+        console.error("Failed to sync questionnaire", e);
+      }
+    }
+    
+    const styleData = localStorage.getItem('desiredStyle');
+    if (styleData) {
+      try {
+        await desiredStyleApi.create(JSON.parse(styleData));
+      } catch (e) {
+        console.error("Failed to sync style", e);
+      }
+    }
+
+    const redirectUrl = localStorage.getItem('redirectAfterStyleSelection');
     if (redirectUrl) {
-      sessionStorage.removeItem('redirectAfterStyleSelection');
+      localStorage.removeItem('redirectAfterStyleSelection');
       navigate(redirectUrl);
     } else {
       navigate('/stylists');
@@ -147,6 +179,16 @@ export default function StyleUploadPage() {
           </button>
         </div>
       </div>
+      
+      {showAuth && (
+        <AuthModal
+          onClose={() => setShowAuth(false)}
+          onSuccess={() => {
+            setShowAuth(false);
+            syncAndNavigate();
+          }}
+        />
+      )}
     </div>
   );
 }

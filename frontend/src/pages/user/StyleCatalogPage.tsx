@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, CheckCircle2, Search, Lock, X, Crown, Star, Filter } from 'lucide-react';
 import type { StyleTag } from '../../types';
 import { STYLE_TAG_LABELS } from '../../types';
+import AuthModal from '../auth/AuthModal';
+import { desiredStyleApi, questionnaireApi } from '../../lib/api';
 
 const CATALOG_ITEMS = [
   {
@@ -122,9 +124,11 @@ export default function StyleCatalogPage() {
   const [searchText, setSearchText] = useState('');
   const [selectedGenres, setSelectedGenres] = useState<StyleTag[]>([]);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [pendingItem, setPendingItem] = useState<typeof CATALOG_ITEMS[0] | null>(null);
   const [premiumFeatureName, setPremiumFeatureName] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const isPremiumUser = sessionStorage.getItem('isPremiumUser') === 'true';
+  const isPremiumUser = localStorage.getItem('isPremiumUser') === 'true';
 
   const toggleGenre = (genre: StyleTag) => {
     setSelectedGenres(prev =>
@@ -157,7 +161,18 @@ export default function StyleCatalogPage() {
       setShowPremiumModal(true);
       return;
     }
-    sessionStorage.setItem(
+    
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setPendingItem(item);
+      setShowAuth(true);
+    } else {
+      syncAndNavigate(item);
+    }
+  };
+
+  const syncAndNavigate = async (item: typeof CATALOG_ITEMS[0]) => {
+    localStorage.setItem(
       'desiredStyle',
       JSON.stringify({
         id: item.id,
@@ -165,9 +180,29 @@ export default function StyleCatalogPage() {
         description: `【カタログから選択】${item.title}`,
       })
     );
-    const redirectUrl = sessionStorage.getItem('redirectAfterStyleSelection');
+
+    // Simulate syncing to backend
+    const qData = localStorage.getItem('questionnaire');
+    if (qData) {
+      try {
+        await questionnaireApi.create(JSON.parse(qData));
+      } catch (e) {
+        console.error("Failed to sync questionnaire", e);
+      }
+    }
+    
+    const styleData = localStorage.getItem('desiredStyle');
+    if (styleData) {
+      try {
+        await desiredStyleApi.create(JSON.parse(styleData));
+      } catch (e) {
+        console.error("Failed to sync style", e);
+      }
+    }
+
+    const redirectUrl = localStorage.getItem('redirectAfterStyleSelection');
     if (redirectUrl) {
-      sessionStorage.removeItem('redirectAfterStyleSelection');
+      localStorage.removeItem('redirectAfterStyleSelection');
       navigate(redirectUrl);
     } else {
       navigate('/stylists');
@@ -542,6 +577,21 @@ export default function StyleCatalogPage() {
             </button>
           </div>
         </div>
+      )}
+
+      {showAuth && (
+        <AuthModal
+          onClose={() => {
+            setShowAuth(false);
+            setPendingItem(null);
+          }}
+          onSuccess={() => {
+            setShowAuth(false);
+            if (pendingItem) {
+              syncAndNavigate(pendingItem);
+            }
+          }}
+        />
       )}
 
       <style>{`

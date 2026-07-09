@@ -5,7 +5,7 @@ import { ChevronRight, Wand2, ImagePlus, Lock, Crown, X, Star } from 'lucide-rea
 export default function StyleChoicePage() {
   const navigate = useNavigate();
   const [showPremiumModal, setShowPremiumModal] = useState(false);
-  const isPremiumUser = sessionStorage.getItem('isPremiumUser') === 'true';
+  const isPremiumUser = localStorage.getItem('isPremiumUser') === 'true';
 
   return (
     <div className="page-enter" style={{ minHeight: 'calc(100vh - var(--header-height))' }}>
@@ -300,15 +300,15 @@ export default function StyleChoicePage() {
               <ul style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)', lineHeight: 1.8, listStyle: 'none', padding: 0 }}>
                 <li className="flex items-center gap-sm">
                   <Star size={12} style={{ color: '#FBBF24', flexShrink: 0 }} />
-                  AIによる骨格・顔型診断と最適スタイルの自動提案
+                  AIによる顔型・骨格診断と最適スタイルの自動提案
                 </li>
                 <li className="flex items-center gap-sm">
                   <Star size={12} style={{ color: '#FBBF24', flexShrink: 0 }} />
-                  アニメ系・K-POP系・モード系など限定スタイルへのアクセス
+                  「AIに提案してもらう」機能のアンロック
                 </li>
                 <li className="flex items-center gap-sm">
                   <Star size={12} style={{ color: '#FBBF24', flexShrink: 0 }} />
-                  詳細なジャンル検索・フリーワード絞り込み機能
+                  カタログのフリーワード検索・ジャンル絞り込み機能
                 </li>
               </ul>
             </div>
@@ -333,6 +333,7 @@ export default function StyleChoicePage() {
             <button
               className="btn btn-ghost btn-full text-sm"
               onClick={() => setShowPremiumModal(false)}
+              style={{ color: 'var(--text-secondary)' }}
             >
               あとで検討する
             </button>
