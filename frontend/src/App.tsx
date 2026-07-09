@@ -138,11 +138,16 @@ function DebugPanel() {
   const [open, setOpen] = useState(false);
 
   const clearData = () => {
-    localStorage.removeItem('questionnaire');
-    localStorage.removeItem('desiredStyle');
-    localStorage.removeItem('allergyChecklist');
-    localStorage.removeItem('lastBooking');
-    alert('問診データとスタイル選択データを消去しました。');
+    localStorage.clear();
+    alert('すべてのデータ（問診・スタイル・ログイン状態）を消去し、初期状態に戻しました。');
+    window.location.reload();
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userName');
+    alert('ログアウトしました（Authトークンを削除）');
     window.location.reload();
   };
 
@@ -162,8 +167,11 @@ function DebugPanel() {
             <button className="btn btn-ghost btn-sm" onClick={() => setOpen(false)} style={{ padding: '0.25rem' }}>✕</button>
           </div>
           <div className="flex flex-col gap-xs">
+            <button className="btn btn-secondary btn-sm btn-full" onClick={handleLogout} style={{ fontSize: '0.75rem', borderColor: 'rgba(239, 68, 68, 0.3)', color: '#EF4444' }}>
+              ログアウト (Auth解除)
+            </button>
             <button className="btn btn-secondary btn-sm btn-full" onClick={clearData} style={{ fontSize: '0.75rem' }}>
-              問診データをクリア
+              全データをリセット
             </button>
             <button className="btn btn-secondary btn-sm btn-full" onClick={togglePremium} style={{ fontSize: '0.75rem' }}>
               プレミアムプランの切替

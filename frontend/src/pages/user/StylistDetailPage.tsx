@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Star, MapPin, Clock, ChevronLeft, CalendarDays } from 'lucide-react';
+import AuthModal from '../auth/AuthModal';
 
 // Same demo data (would come from API in production)
 const DEMO_STYLISTS: Record<string, any> = {
@@ -53,8 +55,30 @@ const SPECIALTY_LABELS: Record<string, string> = {
 export default function StylistDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [showAuth, setShowAuth] = useState(false);
 
   const stylist = DEMO_STYLISTS[id || ''];
+
+  const handleBookingClick = () => {
+    const hasQuestionnaire = localStorage.getItem('questionnaire');
+    const hasStyle = localStorage.getItem('desiredStyle');
+    if (!hasQuestionnaire) {
+      localStorage.setItem('redirectAfterStyleSelection', `/booking/${stylist.id}`);
+      alert('施術レシピの算出と安全なカルテ作成のため、まずは問診（履歴・アレルギー等の回答）を行ってください。');
+      navigate('/questionnaire');
+    } else if (!hasStyle) {
+      localStorage.setItem('redirectAfterStyleSelection', `/booking/${stylist.id}`);
+      alert('希望のヘアスタイルが選択されていません。スタイル選択画面へ移動します。');
+      navigate('/style-choice');
+    } else {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        setShowAuth(true);
+      } else {
+        navigate(`/booking/${stylist.id}`);
+      }
+    }
+  };
 
   if (!stylist) {
     return (
@@ -118,21 +142,7 @@ export default function StylistDetailPage() {
           <div className="flex items-center justify-center gap-md" style={{ flexWrap: 'wrap' }}>
             <button
               className="btn btn-primary btn-lg"
-              onClick={() => {
-                const hasQuestionnaire = localStorage.getItem('questionnaire');
-                const hasStyle = localStorage.getItem('desiredStyle');
-                if (!hasQuestionnaire) {
-                  localStorage.setItem('redirectAfterStyleSelection', `/booking/${stylist.id}`);
-                  alert('施術レシピの算出と安全なカルテ作成のため、まずは問診（履歴・アレルギー等の回答）を行ってください。');
-                  navigate('/questionnaire');
-                } else if (!hasStyle) {
-                  localStorage.setItem('redirectAfterStyleSelection', `/booking/${stylist.id}`);
-                  alert('希望のヘアスタイルが選択されていません。スタイル選択画面へ移動します。');
-                  navigate('/style-choice');
-                } else {
-                  navigate(`/booking/${stylist.id}`);
-                }
-              }}
+              onClick={handleBookingClick}
             >
               <CalendarDays size={18} />
               この美容師に予約する
@@ -194,7 +204,7 @@ export default function StylistDetailPage() {
           <div className="flex gap-sm" style={{ maxWidth: 'var(--max-width-md)', margin: '0 auto' }}>
             <button
               className="btn btn-primary btn-lg btn-full"
-              onClick={() => navigate(`/booking/${stylist.id}`)}
+              onClick={handleBookingClick}
             >
               <CalendarDays size={18} />
               予約リクエストを送る
@@ -202,6 +212,18 @@ export default function StylistDetailPage() {
           </div>
         </div>
       </div>
+      
+      {showAuth && (
+        <AuthModal
+          title="予約へ進むにはログインが必要です"
+          subtitle="予約内容とAI施術レシピを保存するため、無料アカウントを作成してください。"
+          onClose={() => setShowAuth(false)}
+          onSuccess={() => {
+            setShowAuth(false);
+            navigate(`/booking/${stylist.id}`);
+          }}
+        />
+      )}
     </div>
   );
 }
