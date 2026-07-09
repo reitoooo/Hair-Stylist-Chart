@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, CheckCircle2, Search, Lock, X, Crown, Star, Filter } from 'lucide-react';
+import { ChevronLeft, CheckCircle2, Search, Lock, X, Crown, Star, Filter, Loader2 } from 'lucide-react';
 import type { StyleTag } from '../../types';
 import { STYLE_TAG_LABELS } from '../../types';
 import AuthModal from '../auth/AuthModal';
@@ -128,6 +128,7 @@ export default function StyleCatalogPage() {
   const [pendingItem, setPendingItem] = useState<typeof CATALOG_ITEMS[0] | null>(null);
   const [premiumFeatureName, setPremiumFeatureName] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const isPremiumUser = localStorage.getItem('isPremiumUser') === 'true';
 
   const toggleGenre = (genre: StyleTag) => {
@@ -172,45 +173,68 @@ export default function StyleCatalogPage() {
   };
 
   const syncAndNavigate = async (item: typeof CATALOG_ITEMS[0]) => {
-    localStorage.setItem(
-      'desiredStyle',
-      JSON.stringify({
-        id: item.id,
-        image_url: item.image,
-        description: `【カタログから選択】${item.title}`,
-      })
-    );
+    setIsLoading(true);
+    try {
+      localStorage.setItem(
+        'desiredStyle',
+        JSON.stringify({
+          id: item.id,
+          image_url: item.image,
+          description: `【カタログから選択】${item.title}`,
+        })
+      );
 
-    // Simulate syncing to backend
-    const qData = localStorage.getItem('questionnaire');
-    if (qData) {
-      try {
-        await questionnaireApi.create(JSON.parse(qData));
-      } catch (e) {
-        console.error("Failed to sync questionnaire", e);
+      // Simulate syncing to backend
+      const qData = localStorage.getItem('questionnaire');
+      if (qData) {
+        try {
+          await questionnaireApi.create(JSON.parse(qData));
+        } catch (e) {
+          console.error("Failed to sync questionnaire", e);
+        }
       }
-    }
-    
-    const styleData = localStorage.getItem('desiredStyle');
-    if (styleData) {
-      try {
-        await desiredStyleApi.create(JSON.parse(styleData));
-      } catch (e) {
-        console.error("Failed to sync style", e);
+      
+      const styleData = localStorage.getItem('desiredStyle');
+      if (styleData) {
+        try {
+          await desiredStyleApi.create(JSON.parse(styleData));
+        } catch (e) {
+          console.error("Failed to sync style", e);
+        }
       }
-    }
 
-    const redirectUrl = localStorage.getItem('redirectAfterStyleSelection');
-    if (redirectUrl) {
-      localStorage.removeItem('redirectAfterStyleSelection');
-      navigate(redirectUrl);
-    } else {
-      navigate('/stylists');
+      const redirectUrl = localStorage.getItem('redirectAfterStyleSelection');
+      if (redirectUrl) {
+        localStorage.removeItem('redirectAfterStyleSelection');
+        navigate(redirectUrl);
+      } else {
+        navigate('/stylists');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="page-enter" style={{ minHeight: 'calc(100vh - var(--header-height))' }}>
+      {isLoading && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.6)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          color: 'white',
+        }}>
+          <Loader2 size={48} className="animate-spin" style={{ marginBottom: '16px' }} />
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '8px' }}>スタイルを保存中...</h2>
+          <p style={{ fontSize: '0.875rem', opacity: 0.8 }}>スタイリストとのマッチングを準備しています</p>
+        </div>
+      )}
       <div className="container" style={{ padding: 'var(--space-xl) var(--space-lg)' }}>
         {/* Header */}
         <div className="flex items-center gap-md" style={{ marginBottom: 'var(--space-lg)' }}>
