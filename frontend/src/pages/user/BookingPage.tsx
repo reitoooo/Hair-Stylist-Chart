@@ -12,8 +12,8 @@ export default function BookingPage() {
   const [desiredStyle, setDesiredStyle] = useState<any>(null);
 
   useEffect(() => {
-    const savedQ = sessionStorage.getItem('questionnaire');
-    const savedStyle = sessionStorage.getItem('desiredStyle');
+    const savedQ = localStorage.getItem('questionnaire');
+    const savedStyle = localStorage.getItem('desiredStyle');
 
     if (!savedQ) {
       alert('施術レシピの算出と安全なカルテ作成のため、まずは問診（履歴・アレルギー等の回答）を行ってください。');
@@ -71,7 +71,7 @@ export default function BookingPage() {
       chat_history: desiredStyle?.chat_history || [],
       created_at: new Date().toISOString()
     };
-    sessionStorage.setItem('lastBooking', JSON.stringify(newBooking));
+    localStorage.setItem('lastBooking', JSON.stringify(newBooking));
     setSubmitted(true);
   };
 

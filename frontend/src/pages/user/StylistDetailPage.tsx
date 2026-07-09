@@ -119,14 +119,14 @@ export default function StylistDetailPage() {
             <button
               className="btn btn-primary btn-lg"
               onClick={() => {
-                const hasQuestionnaire = sessionStorage.getItem('questionnaire');
-                const hasStyle = sessionStorage.getItem('desiredStyle');
+                const hasQuestionnaire = localStorage.getItem('questionnaire');
+                const hasStyle = localStorage.getItem('desiredStyle');
                 if (!hasQuestionnaire) {
-                  sessionStorage.setItem('redirectAfterStyleSelection', `/booking/${stylist.id}`);
+                  localStorage.setItem('redirectAfterStyleSelection', `/booking/${stylist.id}`);
                   alert('施術レシピの算出と安全なカルテ作成のため、まずは問診（履歴・アレルギー等の回答）を行ってください。');
                   navigate('/questionnaire');
                 } else if (!hasStyle) {
-                  sessionStorage.setItem('redirectAfterStyleSelection', `/booking/${stylist.id}`);
+                  localStorage.setItem('redirectAfterStyleSelection', `/booking/${stylist.id}`);
                   alert('希望のヘアスタイルが選択されていません。スタイル選択画面へ移動します。');
                   navigate('/style-choice');
                 } else {
