@@ -280,13 +280,14 @@ export default function StylistListPage() {
             >
               <div className="flex gap-lg" style={{ flexWrap: 'wrap', position: 'relative' }}>
                 {/* AI Match Badge */}
-                {questionnaire && stylist.match.score >= 80 && (
+                {questionnaire && (
                   <div style={{
                     position: 'absolute',
                     top: '-10px',
                     right: '-10px',
-                    background: 'var(--gradient-primary)',
-                    color: 'white',
+                    background: stylist.match.score >= 80 ? 'var(--gradient-primary)' : 'var(--bg-elevated)',
+                    color: stylist.match.score >= 80 ? 'white' : 'var(--text-primary)',
+                    border: stylist.match.score >= 80 ? 'none' : '1px solid var(--border-default)',
                     padding: '0.25rem 0.75rem',
                     borderRadius: 'var(--radius-full)',
                     fontSize: '0.75rem',
@@ -294,10 +295,10 @@ export default function StylistListPage() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
-                    boxShadow: 'var(--shadow-glow)',
+                    boxShadow: stylist.match.score >= 80 ? 'var(--shadow-glow)' : 'var(--shadow-md)',
                     zIndex: 2
                   }}>
-                    <Sparkles size={12} />
+                    <Sparkles size={12} style={{ color: stylist.match.score >= 80 ? 'white' : 'var(--color-primary-light)' }} />
                     マッチ度 {stylist.match.score}%
                   </div>
                 )}
