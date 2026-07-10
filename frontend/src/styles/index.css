@@ -22,41 +22,41 @@
   --color-accent: #06B6D4;
   --color-accent-light: #22D3EE;
 
-  /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #F97316 100%);
-  --gradient-hero: linear-gradient(135deg, #0F0A1A 0%, #1A0B2E 30%, #2D1B69 60%, #1A0B2E 100%);
-  --gradient-card: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-  --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+  /* Gradients (Light & Clean) */
+  --gradient-primary: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%);
+  --gradient-hero: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 50%, #EEF2FF 100%);
+  --gradient-card: linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 100%);
+  --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.4) 100%);
   --gradient-success: linear-gradient(135deg, #10B981, #059669);
   --gradient-warning: linear-gradient(135deg, #F59E0B, #D97706);
   --gradient-danger: linear-gradient(135deg, #EF4444, #DC2626);
 
-  /* Dark Theme Base */
-  --bg-primary: #0A0A0F;
-  --bg-secondary: #111118;
-  --bg-tertiary: #1A1A24;
-  --bg-elevated: #222230;
-  --bg-glass: rgba(255, 255, 255, 0.04);
+  /* Light Theme Base (Clean White) */
+  --bg-primary: #FAFAFA;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary: #F3F4F6;
+  --bg-elevated: #FFFFFF;
+  --bg-glass: rgba(255, 255, 255, 0.7);
 
   /* Text Colors */
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
-  --text-tertiary: #64748B;
-  --text-muted: #475569;
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-tertiary: #6B7280;
+  --text-muted: #9CA3AF;
   --text-on-primary: #FFFFFF;
 
   /* Border Colors */
-  --border-default: rgba(255, 255, 255, 0.08);
-  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-default: rgba(0, 0, 0, 0.08);
+  --border-subtle: rgba(0, 0, 0, 0.04);
   --border-focus: var(--color-primary);
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 40px rgba(139, 92, 246, 0.2);
-  --shadow-glow-pink: 0 0 40px rgba(236, 72, 153, 0.15);
+  /* Shadows (Soft & Clean Elevation) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.06);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.08);
+  --shadow-glow: 0 0 40px rgba(139, 92, 246, 0.15);
+  --shadow-glow-pink: 0 0 40px rgba(236, 72, 153, 0.1);
 
   /* Typography */
   --font-sans: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -250,7 +250,7 @@ input, textarea, select {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(rgba(255,255,255,0.1), transparent);
+  background: linear-gradient(rgba(0,0,0,0.03), transparent);
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
@@ -505,7 +505,7 @@ input, textarea, select {
   top: 0;
   z-index: 100;
   height: var(--header-height);
-  background: rgba(10, 10, 15, 0.8);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-subtle);
