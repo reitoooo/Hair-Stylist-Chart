@@ -9,7 +9,7 @@ const DEMO_STYLISTS: StylistProfile[] = [
     id: 'stylist-001',
     profile_id: 'profile-stylist-001',
     display_name: '田中 ゆき',
-    avatar_url: null,
+    avatar_url: 'https://images.unsplash.com/photo-1492106087820-71f1a00d2b11?auto=format&fit=crop&w=150&q=80',
     bio: 'ハイトーンカラーやバレイヤージュを得意としています。海外で培った技術で、一人ひとりの骨格やライフスタイルに合わせた独自のカラー表現をご提案します。',
     specialties: ['highlight', 'balayage', 'double_color', 'bleach', 'design_color'],
     product_brands: ['WELLA', 'THROW', 'ADMIIO', 'FIOLE'],
@@ -27,7 +27,7 @@ const DEMO_STYLISTS: StylistProfile[] = [
     id: 'stylist-002',
     profile_id: 'profile-stylist-002',
     display_name: '鈴木 りな',
-    avatar_url: null,
+    avatar_url: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=150&q=80',
     bio: 'ダメージケアを重視したカラーリングのスペシャリスト。最新のケアブリーチ技術を活用し、美しい髪色と健康な髪の両立を目指します。',
     specialties: ['color', 'bleach', 'treatment', 'care_bleach', 'inner_color'],
     product_brands: ['MILBON', 'TOKIO', 'OLAPLEX', 'THROW'],
@@ -45,7 +45,7 @@ const DEMO_STYLISTS: StylistProfile[] = [
     id: 'stylist-003',
     profile_id: 'profile-stylist-003',
     display_name: '山本 けんた',
-    avatar_url: null,
+    avatar_url: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=150&q=80',
     bio: 'K-POPやアニメ文化にインスパイアされたトレンドスタイルの提案に情熱を注いでいます。ビビッドカラーの専門家です。',
     specialties: ['vivid_color', 'bleach', 'design_color', 'men_color', 'unicorn_color'],
     product_brands: ['MANIC PANIC', 'COLORR', 'WELLA', 'N.'],
@@ -63,7 +63,7 @@ const DEMO_STYLISTS: StylistProfile[] = [
     id: 'stylist-004',
     profile_id: 'profile-stylist-004',
     display_name: '中村 みお',
-    avatar_url: null,
+    avatar_url: 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?auto=format&fit=crop&w=150&q=80',
     bio: 'ナチュラルで透明感のあるカラーのスペシャリスト。本来の美しさを引き立てる柔らかなグラデーションカラーが得意です。',
     specialties: ['gradation', 'transparent_color', 'natural_highlight', 'color', 'cut'],
     product_brands: ['ILLUMINA', 'ADMIIO', 'ARIMINO', 'MILBON'],
@@ -81,7 +81,7 @@ const DEMO_STYLISTS: StylistProfile[] = [
     id: 'stylist-005',
     profile_id: 'profile-stylist-005',
     display_name: '斎藤 はると',
-    avatar_url: null,
+    avatar_url: 'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?auto=format&fit=crop&w=150&q=80',
     bio: '黒染めからのトーンアップや、極度のダメージヘアの修復など、複雑なカラー修正をお任せください。WELLAの元エデュケーター。',
     specialties: ['color_correction', 'bleach', 'damage_repair', 'double_color', 'dark_to_light'],
     product_brands: ['WELLA', 'OLAPLEX', 'TOKIO', 'FIOLE', 'MUCOTA'],
@@ -319,8 +319,12 @@ export default function StylistListPage() {
                 )}
 
                 {/* Avatar */}
-                <div className="stylist-avatar">
-                  {stylist.display_name.charAt(0)}
+                <div className="stylist-avatar" style={{ overflow: 'hidden', backgroundColor: 'var(--bg-tertiary)' }}>
+                  {stylist.avatar_url ? (
+                    <img src={stylist.avatar_url} alt={stylist.display_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    stylist.display_name.charAt(0)
+                  )}
                 </div>
 
                 {/* Info */}

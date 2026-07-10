@@ -662,7 +662,7 @@ input, textarea, select {
 .stylist-avatar {
   width: 64px;
   height: 64px;
-  border-radius: 50%;
+  border-radius: var(--radius-md);
   background: var(--gradient-primary);
   display: flex;
   align-items: center;

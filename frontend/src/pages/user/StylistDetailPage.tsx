@@ -6,7 +6,7 @@ import AuthModal from '../auth/AuthModal';
 // Same demo data (would come from API in production)
 const DEMO_STYLISTS: Record<string, any> = {
   'stylist-001': {
-    id: 'stylist-001', display_name: '田中 ゆき', avatar_url: null,
+    id: 'stylist-001', display_name: '田中 ゆき', avatar_url: 'https://images.unsplash.com/photo-1492106087820-71f1a00d2b11?auto=format&fit=crop&w=150&q=80',
     bio: 'ハイトーンカラーやバレイヤージュを得意としています。海外で培った技術で、一人ひとりの骨格やライフスタイルに合わせた独自のカラー表現をご提案します。ロンドンのサスーンアカデミーで学び、グローバルな視点を取り入れたスタイルを作ります。',
     specialties: ['highlight', 'balayage', 'double_color', 'bleach', 'design_color'],
     product_brands: ['WELLA', 'THROW', 'ADMIIO', 'FIOLE'],
@@ -15,7 +15,7 @@ const DEMO_STYLISTS: Record<string, any> = {
     portfolio_urls: ['/models/balayage.png'],
   },
   'stylist-002': {
-    id: 'stylist-002', display_name: '鈴木 りな', avatar_url: null,
+    id: 'stylist-002', display_name: '鈴木 りな', avatar_url: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=150&q=80',
     bio: 'ダメージケアを重視したカラーリングのスペシャリスト。OLAPLEXやTOKIO INKARAMIなど最新のケアブリーチ技術を活用し、髪の健康を保ちながら美しいハイトーンカラーを実現します。髪の毛を傷めないカラーリングを第一に考えています。',
     specialties: ['color', 'bleach', 'treatment', 'care_bleach', 'inner_color'],
     product_brands: ['MILBON', 'TOKIO', 'OLAPLEX', 'THROW'],
@@ -24,7 +24,7 @@ const DEMO_STYLISTS: Record<string, any> = {
     portfolio_urls: ['/models/bob.png'],
   },
   'stylist-003': {
-    id: 'stylist-003', display_name: '山本 けんた', avatar_url: null,
+    id: 'stylist-003', display_name: '山本 けんた', avatar_url: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=150&q=80',
     bio: 'K-POPやアニメ文化にインスパイアされたトレンドスタイルの提案に情熱を注いでいます。ビビッドカラーやクリエイティブなブリーチデザインの専門家です。ユニコーンカラーやスプリットカラーなど、個性的なスタイルはお任せください。',
     specialties: ['vivid_color', 'bleach', 'design_color', 'men_color', 'unicorn_color'],
     product_brands: ['MANIC PANIC', 'COLORR', 'WELLA', 'N.'],
@@ -33,7 +33,7 @@ const DEMO_STYLISTS: Record<string, any> = {
     portfolio_urls: ['/models/vivid.png'],
   },
   'stylist-004': {
-    id: 'stylist-004', display_name: '中村 みお', avatar_url: null,
+    id: 'stylist-004', display_name: '中村 みお', avatar_url: 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?auto=format&fit=crop&w=150&q=80',
     bio: 'ナチュラルで透明感のあるカラーのスペシャリスト。本来の美しさを引き立てる柔らかなグラデーションカラーが得意です。細い髪や敏感な頭皮の方にも安心して受けていただけるよう、長期的な髪の健康を優先した優しいアプローチを心がけています。',
     specialties: ['gradation', 'transparent_color', 'natural_highlight', 'color', 'cut'],
     product_brands: ['ILLUMINA', 'ADMIIO', 'ARIMINO', 'MILBON'],
@@ -42,7 +42,7 @@ const DEMO_STYLISTS: Record<string, any> = {
     portfolio_urls: ['/models/bob.png', '/models/balayage.png'],
   },
   'stylist-005': {
-    id: 'stylist-005', display_name: '斎藤 はると', avatar_url: null,
+    id: 'stylist-005', display_name: '斎藤 はると', avatar_url: 'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?auto=format&fit=crop&w=150&q=80',
     bio: '黒染めからのトーンアップや、極度のダメージヘアの修復など、複雑なカラー修正をお任せください。WELLAのエデュケーター経験もある12年目のスタイリストです。他店で断られたような難しい施術でも、一度ご相談ください。',
     specialties: ['color_correction', 'bleach', 'damage_repair', 'double_color', 'dark_to_light'],
     product_brands: ['WELLA', 'OLAPLEX', 'TOKIO', 'FIOLE', 'MUCOTA'],
@@ -124,8 +124,12 @@ export default function StylistDetailPage() {
             background: 'linear-gradient(135deg, rgba(139,92,246,0.08), rgba(236,72,153,0.04))',
           }}
         >
-          <div className="stylist-avatar stylist-avatar-lg" style={{ margin: '0 auto var(--space-lg)' }}>
-            {stylist.display_name.charAt(0)}
+          <div className="stylist-avatar stylist-avatar-lg" style={{ margin: '0 auto var(--space-lg)', overflow: 'hidden', backgroundColor: 'var(--bg-tertiary)' }}>
+            {stylist.avatar_url ? (
+              <img src={stylist.avatar_url} alt={stylist.display_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              stylist.display_name.charAt(0)
+            )}
           </div>
 
           <h1 style={{ fontSize: 'var(--font-size-3xl)', fontWeight: 800, marginBottom: 'var(--space-sm)' }}>
