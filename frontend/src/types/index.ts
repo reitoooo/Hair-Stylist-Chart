@@ -330,7 +330,7 @@ export const STYLE_TAG_LABELS: Record<StyleTag, string> = {
 // Hair option labels (for UI display)
 // ──────────────────────────────────────────────
 
-export const HAIR_LENGTH_LABELS: Record<HairLength, string> = {
+export const HAIR_LENGTH_LABELS: Record<HairLength | 'unknown', string> = {
   short: 'ショート',
   bob: 'ボブ',
   medium: 'ミディアム',

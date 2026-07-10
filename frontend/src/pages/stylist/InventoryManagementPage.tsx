@@ -91,7 +91,7 @@ export default function InventoryManagementPage() {
                   <div className="text-sm text-secondary">{item.product_line}</div>
                 </div>
                 <div className="flex items-center gap-md">
-                  <div style={{ textAlign: 'right', minWidth: '80px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <input
                       type="number"
                       className="form-input"
@@ -101,9 +101,9 @@ export default function InventoryManagementPage() {
                         updated[idx].price_per_gram = parseInt(e.target.value) || 0;
                         setInventory(updated);
                       }}
-                      style={{ width: '80px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', textAlign: 'right' }}
+                      style={{ width: '70px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', textAlign: 'right', margin: 0 }}
                     />
-                    <div className="text-xs text-muted" style={{ marginTop: '2px' }}>円/g</div>
+                    <span className="text-xs text-muted" style={{ whiteSpace: 'nowrap' }}>円/g</span>
                   </div>
                   <button 
                     className={`btn btn-sm ${item.is_available ? 'btn-primary' : 'btn-secondary'}`}
@@ -122,8 +122,8 @@ export default function InventoryManagementPage() {
           <h3 className="text-lg font-bold mb-md" style={{ marginBottom: 'var(--space-md)' }}>
             新しい薬剤の追加
           </h3>
-          <div className="grid grid-cols-3 gap-md items-end">
-            <div className="form-group mb-0">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--space-md)', alignItems: 'end' }}>
+            <div className="form-group mb-0" style={{ margin: 0 }}>
               <label className="form-label">ブランド名</label>
               <input 
                 type="text" 
@@ -133,7 +133,7 @@ export default function InventoryManagementPage() {
                 onChange={(e) => setNewBrand(e.target.value)}
               />
             </div>
-            <div className="form-group mb-0">
+            <div className="form-group mb-0" style={{ margin: 0 }}>
               <label className="form-label">製品ライン名</label>
               <input 
                 type="text" 
@@ -143,7 +143,7 @@ export default function InventoryManagementPage() {
                 onChange={(e) => setNewLine(e.target.value)}
               />
             </div>
-            <div className="form-group mb-0">
+            <div className="form-group mb-0" style={{ margin: 0 }}>
               <label className="form-label">単価 (円/g)</label>
               <input 
                 type="number" 
@@ -153,8 +153,8 @@ export default function InventoryManagementPage() {
                 onChange={(e) => setNewPrice(e.target.value)}
               />
             </div>
-            <div style={{ gridColumn: 'span 3', marginTop: 'var(--space-sm)' }}>
-              <button className="btn btn-secondary btn-full" onClick={addCustomItem}>
+            <div style={{ gridColumn: '1 / -1', marginTop: 'var(--space-sm)' }}>
+              <button className="btn btn-secondary btn-full" onClick={addCustomItem} style={{ width: '100%' }}>
                 <Plus size={16} /> リストに追加
               </button>
             </div>

@@ -110,7 +110,7 @@ function analyzeColor(hexString: string) {
 const calculateDynamicRecipe = (customer: any) => {
   // Handle design color multi-color target
   const targetHexes = customer.target_color ? customer.target_color.split(',') : [];
-  const targetDefs = targetHexes.map(hex => HAIR_COLOR_PALETTE.find(c => c.hex === hex)).filter(Boolean) as typeof HAIR_COLOR_PALETTE;
+  const targetDefs = targetHexes.map((hex: string) => HAIR_COLOR_PALETTE.find(c => c.hex === hex)).filter(Boolean) as typeof HAIR_COLOR_PALETTE;
   
   if (targetDefs.length === 0) {
     // default target color if none

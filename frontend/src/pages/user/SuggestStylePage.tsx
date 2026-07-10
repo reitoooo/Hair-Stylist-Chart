@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Upload, X, ImageIcon, ChevronRight, ChevronLeft, SlidersHorizontal, AlertTriangle, CheckCircle2, Send, Tag, Waves } from 'lucide-react';
-import type { QuestionnaireData } from '../../types';
+import type { QuestionnaireData, HairColorDef } from '../../types';
+import { HAIR_COLOR_PALETTE } from '../../types';
 import { generateAIResponse, createInitialContext, type ChatContext } from '../../lib/aiChatEngine';
 import AuthModal from '../auth/AuthModal';
 import { desiredStyleApi, questionnaireApi } from '../../lib/api';
@@ -533,7 +534,7 @@ export default function SuggestStylePage() {
                     髪色
                   </div>
                   <div className="flex gap-md overflow-x-auto hide-scrollbar">
-                    {HAIR_COLOR_PALETTE.map(color => (
+                    {HAIR_COLOR_PALETTE.map((color: HairColorDef) => (
                       <button
                         key={color.id}
                         onClick={() => setSelectedColor(color.id)}
