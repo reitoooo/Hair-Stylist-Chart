@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Scissors, Crown } from 'lucide-react';
+import { Crown } from 'lucide-react';
 import LandingPage from './pages/user/LandingPage';
 import QuestionnairePage from './pages/user/QuestionnairePage';
 import StyleUploadPage from './pages/user/StyleUploadPage';
