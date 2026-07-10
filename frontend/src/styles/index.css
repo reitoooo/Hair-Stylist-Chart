@@ -22,21 +22,21 @@
   --color-accent: #06B6D4;
   --color-accent-light: #22D3EE;
 
-  /* Gradients (Light & Clean) */
-  --gradient-primary: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%);
-  --gradient-hero: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 50%, #EEF2FF 100%);
-  --gradient-card: linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 100%);
-  --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.4) 100%);
+  /* Gradients (Simple & Flat) */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  --gradient-hero: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+  --gradient-card: #FFFFFF;
+  --gradient-glass: #FFFFFF;
   --gradient-success: linear-gradient(135deg, #10B981, #059669);
   --gradient-warning: linear-gradient(135deg, #F59E0B, #D97706);
   --gradient-danger: linear-gradient(135deg, #EF4444, #DC2626);
 
-  /* Light Theme Base (Clean White) */
-  --bg-primary: #FAFAFA;
+  /* Light Theme Base (Simple Solid White) */
+  --bg-primary: #F9FAFB;
   --bg-secondary: #FFFFFF;
   --bg-tertiary: #F3F4F6;
   --bg-elevated: #FFFFFF;
-  --bg-glass: rgba(255, 255, 255, 0.7);
+  --bg-glass: #FFFFFF;
 
   /* Text Colors */
   --text-primary: #111827;
@@ -45,9 +45,9 @@
   --text-muted: #9CA3AF;
   --text-on-primary: #FFFFFF;
 
-  /* Border Colors */
-  --border-default: rgba(0, 0, 0, 0.08);
-  --border-subtle: rgba(0, 0, 0, 0.04);
+  /* Border Colors (Crisp & Simple) */
+  --border-default: #E5E7EB;
+  --border-subtle: #F3F4F6;
   --border-focus: var(--color-primary);
 
   /* Shadows (Soft & Clean Elevation) */
@@ -202,11 +202,9 @@ input, textarea, select {
 .font-extrabold { font-weight: 800; }
 
 
-/* ─── Glassmorphism Card ─── */
+/* ─── Simple Card ─── */
 .glass-card {
-  background: var(--gradient-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--bg-elevated);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   padding: var(--space-lg);
@@ -220,9 +218,7 @@ input, textarea, select {
 }
 
 .glass-card-static {
-  background: var(--gradient-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--bg-elevated);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   padding: var(--space-lg);
@@ -505,10 +501,8 @@ input, textarea, select {
   top: 0;
   z-index: 100;
   height: var(--header-height);
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-subtle);
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--border-default);
   display: flex;
   align-items: center;
   padding: 0 var(--space-lg);

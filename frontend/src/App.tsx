@@ -31,11 +31,9 @@ function AppHeader() {
   return (
     <header className="app-header">
       <div className="container flex items-center justify-between" style={{ maxWidth: '100%' }}>
-        <Link to="/" className="logo" style={{ textDecoration: 'none' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Scissors size={24} />
-            HairMatch
-          </span>
+        <Link to="/" className="logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <img src="/logo.png" alt="HairMatch Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }} />
+          <span>HairMatch</span>
         </Link>
 
         <nav className="hide-mobile">
