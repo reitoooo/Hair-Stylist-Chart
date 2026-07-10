@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Star, MapPin, Clock, ChevronLeft, CalendarDays, Tag, Coffee, Smile } from 'lucide-react';
 import AuthModal from '../auth/AuthModal';
@@ -66,6 +66,10 @@ export default function StylistDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [showAuth, setShowAuth] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const stylist = DEMO_STYLISTS[id || ''];
 
