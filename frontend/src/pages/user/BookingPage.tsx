@@ -70,9 +70,11 @@ export default function BookingPage() {
       salon_vibe: qData?.salon_vibe || '気にしない・美容師におまかせ',
       refined_details: desiredStyle?.refined_details || [],
       chat_history: desiredStyle?.chat_history || [],
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      questionnaire: qData
     };
     localStorage.setItem('lastBooking', JSON.stringify(newBooking));
+    sessionStorage.setItem('lastBooking', JSON.stringify(newBooking));
     setSubmitted(true);
   };
 

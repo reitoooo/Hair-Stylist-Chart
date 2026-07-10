@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   ChevronLeft, Sparkles, Beaker, AlertTriangle, Shield, Clock,
@@ -27,85 +27,278 @@ const LENGTH_OPTIONS = [
   { id: 'very_long', label: 'スーパーロング' },
 ];
 
+const HAIR_TYPE_OPTIONS = [
+  { id: 'soft', label: '軟毛' },
+  { id: 'normal', label: '普通' },
+  { id: 'hard', label: '硬毛' },
+];
+
+const PRESET_COLORS = [
+  '#ffcdd2', '#f8bbd0', '#e1bee7', '#d1c4e9', '#c5cae9', '#bbdefb', '#b3e5fc', '#b2ebf2', '#b2dfdb', '#c8e6c9', '#dcedc8', '#f0f4c3', '#fff9c4', '#ffecb3', '#ffe0b2', '#ffccbc', '#d7ccc8', '#f5f5f5',
+  '#e57373', '#f06292', '#ba68c8', '#9575cd', '#7986cb', '#64b5f6', '#4fc3f7', '#4dd0e1', '#4db6ac', '#81c784', '#aed581', '#dce775', '#fff176', '#ffd54f', '#ffb74d', '#ff8a65', '#a1887f', '#e0e0e0',
+  '#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722', '#795548', '#9e9e9e',
+  '#d32f2f', '#c2185b', '#7b1fa2', '#512da8', '#303f9f', '#1976d2', '#0288d1', '#0097a7', '#00796b', '#388e3c', '#689f38', '#afb42b', '#fbc02d', '#ffa000', '#f57c00', '#e64a19', '#5d4037', '#616161',
+  '#b71c1c', '#880e4f', '#4a148c', '#311b92', '#1a237e', '#0d47a1', '#01579b', '#006064', '#004d40', '#1b5e20', '#33691e', '#827717', '#f57f17', '#ff6f00', '#e65100', '#bf360c', '#3e2723', '#212121',
+];
+
+function analyzeColor(hexString: string) {
+  const hexes = hexString.split(',').filter(h => h.startsWith('#'));
+  if (hexes.length === 0) return { hue: 'brown', requiresBleach: false, name: '不明', isDesign: false };
+  
+  const hex = hexes[0];
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const s = max === min ? 0 : l > 0.5 ? (max - min) / (2 - max - min) : (max - min) / (max + min);
+  
+  let h = 0;
+  if (max !== min) {
+    if (max === r) h = (g - b) / (max - min) + (g < b ? 6 : 0);
+    else if (max === g) h = (b - r) / (max - min) + 2;
+    else h = (r - g) / (max - min) + 4;
+    h /= 6;
+  }
+  
+  const requiresBleach = hexes.some(hx => {
+    const r2 = parseInt(hx.slice(1, 3), 16) / 255;
+    const g2 = parseInt(hx.slice(3, 5), 16) / 255;
+    const b2 = parseInt(hx.slice(5, 7), 16) / 255;
+    const mx = Math.max(r2, g2, b2), mn = Math.min(r2, g2, b2);
+    const lv = (mx + mn) / 2;
+    const sv = mx === mn ? 0 : lv > 0.5 ? (mx - mn) / (2 - mx - mn) : (mx - mn) / (mx + mn);
+    return lv > 0.55 || (sv > 0.5 && lv > 0.35);
+  });
+
+  let hue = 'brown';
+  if (s < 0.15) {
+     if (l > 0.7) hue = 'silver_gray';
+     else if (l < 0.3) hue = 'black_dark';
+     else hue = 'ash_greige';
+  } else {
+     const hDeg = h * 360;
+     if (hDeg < 15 || hDeg >= 330) hue = 'red_pink';
+     else if (hDeg < 45) hue = 'orange_apricot';
+     else if (hDeg < 70) hue = 'yellow_beige';
+     else if (hDeg < 160) hue = 'green_olive';
+     else if (hDeg < 250) hue = 'blue_ash';
+     else if (hDeg < 330) hue = 'purple_lavender';
+  }
+
+  const nameMap: Record<string, string> = {
+    silver_gray: 'シルバー/グレー',
+    black_dark: 'ブラック/ダーク',
+    ash_greige: 'アッシュ/グレージュ',
+    red_pink: 'レッド/ピンク',
+    orange_apricot: 'オレンジ/アプリコット',
+    yellow_beige: 'イエロー/ベージュ',
+    green_olive: 'グリーン/オリーブ',
+    blue_ash: 'ブルー/アッシュ',
+    purple_lavender: 'パープル/ラベンダー',
+    brown: 'ブラウン',
+  };
+
+  return { hue, requiresBleach, name: nameMap[hue] || 'カスタムカラー', isDesign: hexes.length > 1 };
+}
+
 export default function ChemicalCalculatorPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
   const navigate = useNavigate();
 
-  // Form state — pre-filled from booking if available
+  // Form state
   const [damageLevel, setDamageLevel] = useState(3);
-  const [bleachCount, setBleachCount] = useState(1);
+  const [bleachCount, setBleachCount] = useState(0);
   const [targetTreatment, setTargetTreatment] = useState('color');
   const [targetTone, setTargetTone] = useState('medium');
   const [hasStraightening, setHasStraightening] = useState(false);
   const [hasPerm, setHasPerm] = useState(false);
   const [hasBlackDye, setHasBlackDye] = useState(false);
   const [hairLength, setHairLength] = useState('medium');
+  const [hairType, setHairType] = useState('normal');
   const [permCount, setPermCount] = useState(0);
+  const [currentColor, setCurrentColor] = useState('#111111');
+  const [targetColor, setTargetColor] = useState('#d4b895');
 
   const [result, setResult] = useState<ChemicalCalculationResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
 
+  // Sync with booking data
+  useEffect(() => {
+    if (bookingId) {
+      const lastB = sessionStorage.getItem('lastBooking');
+      if (lastB) {
+        try {
+          const parsed = JSON.parse(lastB);
+          if (parsed.id === bookingId) {
+            const q = parsed.questionnaire;
+            if (q) {
+              setDamageLevel(q.damage_level || 3);
+              setBleachCount(q.bleach_count >= 0 ? q.bleach_count : 0);
+              setHasStraightening(q.has_straightening === 'yes');
+              setHasPerm(q.has_perm === 'yes');
+              setHasBlackDye(q.has_black_dye === 'yes');
+              setHairLength(q.hair_length || 'medium');
+              setPermCount(q.perm_count >= 0 ? q.perm_count : 0);
+              setHairType(q.hair_type || 'normal');
+              
+              if (q.current_hair_color && q.current_hair_color !== 'consult') {
+                setCurrentColor(q.current_hair_color);
+              }
+              if (q.target_color && q.target_color !== 'consult') {
+                setTargetColor(q.target_color);
+              }
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+  }, [bookingId]);
+
   const handleCalculate = async () => {
     setIsCalculating(true);
-    // Simulate API call (in production, call chemicalApi.calculate)
     setTimeout(() => {
-      // Client-side mock of the calculation for demo
+      const targetDef = analyzeColor(targetColor);
+
+      // Calculate risk score based on damage and color incompatibility
+      let targetRisk = 0;
+      if (targetDef.requiresBleach && bleachCount === 0) {
+        targetRisk = 2.5; // High risk to achieve light tone without bleaching
+      }
+
       const riskScore = Math.min(10,
         damageLevel * 1.2 +
         Math.min(bleachCount * 0.8, 4) +
         (hasStraightening && targetTreatment === 'perm' ? 3 : 0) +
-        (permCount >= 5 ? 2 : 0)
+        (permCount >= 5 ? 2 : 0) +
+        targetRisk
       );
 
-      const mockResult: ChemicalCalculationResult = {
-        id: `calc-${Date.now()}`,
-        recommended_agents: [
-          {
-            agent: {
-              id: 'agent-1',
-              name: damageLevel >= 4 ? '酸性カラー (酸性染料)' : damageLevel >= 3 ? '微アルカリカラー' : '中アルカリカラー',
-              type: damageLevel >= 4 ? '酸性' : 'アルカリ性',
-              strength: damageLevel >= 4 ? 'low' : damageLevel >= 3 ? 'low' : 'medium',
-              ph_range: damageLevel >= 4 ? '3.5-6.0' : damageLevel >= 3 ? '7.5-8.0' : '8.0-9.0',
-              description: '髪の状態に基づいて選択された主剤',
-              risk_level: damageLevel >= 4 ? 0 : damageLevel >= 3 ? 1 : 2,
-              suitable_damage_max: damageLevel >= 4 ? 5 : damageLevel >= 3 ? 4 : 3,
-            },
-            role: '1液 (主剤)',
-            mix_ratio: '2液と1:1',
-            reason: `ダメージレベル ${damageLevel}/5 に基づき選択`,
+      // Propose main and complementary color agents
+      const recAgents = [];
+      
+      if (targetTreatment === 'color') {
+        let colorAgentName = '';
+        let compAgentName = '';
+        let compRatio = '';
+        
+        if (targetDef.hue === 'red_pink') {
+          colorAgentName = `THROW Color ${targetDef.requiresBleach ? '10-Pink' : '8-Pink'}`;
+          compAgentName = 'THROW Color 6-Violet (補正用)';
+          compRatio = '5%';
+        } else if (targetDef.hue === 'green_olive') {
+          colorAgentName = `THROW Color ${targetDef.requiresBleach ? '10-Matt' : '8-Matt'}`;
+          compAgentName = 'THROW Color 8-Ash (補色用)';
+          compRatio = '10%';
+        } else if (targetDef.hue === 'blue_ash' || targetDef.hue === 'silver_gray') {
+          colorAgentName = `THROW Color ${targetDef.requiresBleach ? '10-Ash' : '8-Ash'}`;
+          compAgentName = 'THROW Color 8-Violet (補色用)';
+          compRatio = '10%';
+        } else if (targetDef.hue === 'yellow_beige' || targetDef.hue === 'ash_greige') {
+          colorAgentName = `THROW Color ${targetDef.requiresBleach ? '9-Beige' : '8-Beige'}`;
+          compAgentName = 'THROW Color 8-Violet (補正用)';
+          compRatio = '8%';
+        } else {
+          colorAgentName = 'THROW Color 8-N (ナチュラルブラウン)';
+        }
+
+        if (targetDef.isDesign) {
+          colorAgentName += ' (デザイン用メイン)';
+        }
+
+        recAgents.push({
+          agent: {
+            id: 'agent-color-main',
+            name: colorAgentName,
+            type: 'color',
+            strength: damageLevel >= 4 ? 'low' : damageLevel >= 3 ? 'low' : 'medium',
+            ph_range: damageLevel >= 4 ? '6.0-6.5' : damageLevel >= 3 ? '7.5-8.0' : '8.0-9.0',
+            description: `目標色（${targetDef.name}）用主剤`,
+            risk_level: damageLevel >= 4 ? 0 : 1,
+            suitable_damage_max: 5,
           },
-          {
+          role: '1液 (主剤)',
+          mix_ratio: '2液と1:1',
+          reason: `希望色 ${targetDef.name} および髪質(${hairType === 'soft' ? '軟毛' : hairType === 'hard' ? '硬毛' : '普通'})に基づいて算定`,
+        });
+
+        if (compAgentName) {
+          recAgents.push({
             agent: {
-              id: 'agent-dev',
-              name: damageLevel >= 3 ? '3% オキシ (10 Vol)' : '6% オキシ (20 Vol)',
-              type: 'developer',
-              strength: damageLevel >= 3 ? 'low' : 'medium',
-              ph_range: '2.5-3.5',
-              description: '酸化剤 (デベロッパー)',
-              risk_level: damageLevel >= 3 ? 0 : 1,
-              suitable_damage_max: 5,
-            },
-            role: '2液 (酸化剤)',
-            mix_ratio: '1液の比率を参照',
-            reason: 'ダメージレベルに合わせて濃度を調整',
-          },
-          {
-            agent: {
-              id: 'agent-treat',
-              name: 'OLAPLEX No.1 Bond Multiplier',
-              type: 'treatment',
+              id: 'agent-color-comp',
+              name: compAgentName,
+              type: 'color',
               strength: 'low',
-              ph_range: '3.0-4.0',
-              description: '結合強化トリートメント',
+              ph_range: '7.5-8.0',
+              description: 'アンダートーン相殺・色持ち用補色',
               risk_level: 0,
               suitable_damage_max: 5,
             },
-            role: '結合保護',
-            mix_ratio: '30gに対して1.5ml',
-            reason: '施術中の結合を保護',
+            role: '1液 (補色 / 補正色)',
+            mix_ratio: `調合比率: ${compRatio}`,
+            reason: '黄味や赤味のアンダートーンを相殺',
+          });
+        }
+      } else {
+        // Fallback or generic agent (bleach/perm)
+        recAgents.push({
+          agent: {
+            id: 'agent-1',
+            name: targetTreatment === 'bleach' ? 'WELLA Blondor Multi Blonde' : 'アリミノ コスメカール (システアミン系)',
+            type: targetTreatment === 'bleach' ? 'bleach' : 'perm',
+            strength: damageLevel >= 4 ? 'low' : damageLevel >= 3 ? 'low' : 'medium',
+            ph_range: targetTreatment === 'bleach' ? '11.0-12.0' : damageLevel >= 3 ? '7.0-7.5' : '8.0-8.5',
+            description: '施術タイプに合わせて選択された主剤',
+            risk_level: damageLevel >= 4 ? 0 : damageLevel >= 3 ? 1 : 2,
+            suitable_damage_max: damageLevel >= 4 ? 5 : damageLevel >= 3 ? 4 : 3,
           },
-        ],
+          role: '1液 (主剤)',
+          mix_ratio: targetTreatment === 'bleach' ? '2液と1:2' : '加温10-15分',
+          reason: `ダメージレベル ${damageLevel}/5 に基づき選択`,
+        });
+      }
+
+      // Add developer and treatment agents
+      const use3Percent = damageLevel >= 3 || targetTreatment !== 'bleach';
+      recAgents.push({
+        agent: {
+          id: 'agent-dev',
+          name: use3Percent ? '3% オキシデベロッパー' : '6% オキシデベロッパー',
+          type: 'developer',
+          strength: use3Percent ? 'low' : 'medium',
+          ph_range: '2.5-3.5',
+          description: '酸化剤 (デベロッパー)',
+          risk_level: use3Percent ? 0 : 1,
+          suitable_damage_max: 5,
+        },
+        role: '2液 (酸化剤)',
+        mix_ratio: targetTreatment === 'bleach' ? '1:2' : '1:1',
+        reason: 'ダメージ度合いとトーンアップ必要性から濃度を調整',
+      });
+
+      if (damageLevel >= 3) {
+        recAgents.push({
+          agent: {
+            id: 'agent-treat',
+            name: 'OLAPLEX No.1 Bond Multiplier',
+            type: 'treatment',
+            strength: 'low',
+            ph_range: '3.0-4.0',
+            description: '結合強化トリートメント',
+            risk_level: 0,
+            suitable_damage_max: 5,
+          },
+          role: '結合保護剤',
+          mix_ratio: '剤総量に対して5%混入',
+          reason: 'ハイダメージ毛の内部結合を保護',
+        });
+      }
+
+      const mockResult: ChemicalCalculationResult = {
+        id: `calc-${Date.now()}`,
+        recommended_agents: recAgents,
         processing_time_minutes: Math.round((targetTreatment === 'bleach' ? 45 : targetTreatment === 'perm' ? 20 : 35) * (hairLength === 'long' ? 1.2 : hairLength === 'short' ? 0.7 : 1)),
         risk_score: Math.round(riskScore * 10) / 10,
         risk_factors: [
@@ -118,6 +311,12 @@ export default function ChemicalCalculatorPage() {
         warnings: [
           ...(hasStraightening && targetTreatment === 'perm'
             ? ['警告: 縮毛矯正毛へのパーマは非常に高リスクです。事前のストランドテストを強く推奨します。']
+            : []),
+          ...(targetTreatment === 'color' && targetDef.requiresBleach && bleachCount === 0
+            ? [`警告: 希望の明るい色（${targetDef.name}）を出すためには、現在のベースからブリーチ施術を追加する必要があります。`]
+            : []),
+          ...(targetTreatment === 'color' && hasBlackDye && targetDef.requiresBleach
+            ? ['警告: 黒染め履歴がある髪へのハイトーンカラー・ブリーチは、染料が残留しているため強烈なオレンジ味や染まりムラになる危険性が極めて高いです。アンダーカラー補正に注意してください。']
             : []),
         ],
         pre_treatments: [
@@ -257,6 +456,90 @@ export default function ChemicalCalculatorPage() {
                 </div>
               )}
 
+              {/* Color Details (Current and Target Color) */}
+              {targetTreatment === 'color' && (
+                <>
+                  <div className="form-group">
+                    <label className="form-label">現在の髪色</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(18, 1fr)', gap: '2px', marginBottom: 'var(--space-sm)' }}>
+                      {PRESET_COLORS.map(color => (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => setCurrentColor(color)}
+                          style={{
+                            aspectRatio: '1/1',
+                            width: '100%',
+                            background: color,
+                            border: currentColor === color ? '2px solid white' : 'none',
+                            boxShadow: currentColor === color ? '0 0 0 2px var(--color-primary)' : 'none',
+                            cursor: 'pointer',
+                            borderRadius: '2px',
+                            transform: currentColor === color ? 'scale(1.2)' : 'scale(1)',
+                            zIndex: currentColor === color ? 10 : 1,
+                            transition: 'transform 0.1s'
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">希望の髪色 (複数選択でデザインカラー)</label>
+                    
+                    {targetColor && (
+                      <div className="flex items-center gap-sm" style={{ marginBottom: 'var(--space-xs)', flexWrap: 'wrap' }}>
+                        {targetColor.split(',').map((c, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--bg-tertiary)', padding: '2px 8px', borderRadius: '16px', border: '1px solid var(--border-default)' }}>
+                            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: c }} />
+                            <span style={{ fontSize: '0.65rem', textTransform: 'uppercase' }}>{c}</span>
+                            <button
+                              onClick={() => {
+                                const newColors = targetColor.split(',').filter(hc => hc !== c);
+                                setTargetColor(newColors.join(','));
+                              }}
+                              style={{ marginLeft: '4px', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '10px' }}
+                            >✕</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(18, 1fr)', gap: '2px', marginBottom: 'var(--space-sm)' }}>
+                      {PRESET_COLORS.map(color => {
+                        const isSelected = targetColor ? targetColor.split(',').includes(color) : false;
+                        return (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={() => {
+                              const currentColors = targetColor ? targetColor.split(',') : [];
+                              if (isSelected) {
+                                setTargetColor(currentColors.filter(c => c !== color).join(','));
+                              } else if (currentColors.length < 3) {
+                                setTargetColor([...currentColors, color].join(','));
+                              }
+                            }}
+                            style={{
+                              aspectRatio: '1/1',
+                              width: '100%',
+                              background: color,
+                              border: isSelected ? '2px solid white' : 'none',
+                              boxShadow: isSelected ? '0 0 0 2px var(--color-primary)' : 'none',
+                              cursor: 'pointer',
+                              borderRadius: '2px',
+                              transform: isSelected ? 'scale(1.2)' : 'scale(1)',
+                              zIndex: isSelected ? 10 : 1,
+                              transition: 'transform 0.1s'
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+
               {/* Damage Level */}
               <div className="form-group">
                 <label className="form-label">ダメージレベル: {damageLevel}/5</label>
@@ -288,6 +571,23 @@ export default function ChemicalCalculatorPage() {
                   ))}
                 </div>
               </div>
+              
+              {/* Hair Type */}
+              <div className="form-group">
+                <label className="form-label">髪質</label>
+                <div className="flex gap-xs flex-wrap">
+                  {HAIR_TYPE_OPTIONS.map(h => (
+                    <button
+                      key={h.id}
+                      className={`chip ${hairType === h.id ? 'chip-active' : ''}`}
+                      onClick={() => setHairType(h.id)}
+                      style={{ cursor: 'pointer', fontSize: 'var(--font-size-xs)' }}
+                    >
+                      {h.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {/* Hair Length */}
               <div className="form-group">
@@ -306,23 +606,32 @@ export default function ChemicalCalculatorPage() {
                 </div>
               </div>
 
-              {/* Boolean toggles */}
-              <div className="flex flex-col gap-sm">
-                {[
-                  { label: '縮毛矯正の履歴', value: hasStraightening, set: setHasStraightening },
-                  { label: 'パーマの履歴', value: hasPerm, set: setHasPerm },
-                  { label: '黒染めの履歴', value: hasBlackDye, set: setHasBlackDye },
-                ].map(item => (
-                  <label key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>
-                    <input
-                      type="checkbox"
-                      checked={item.value}
-                      onChange={e => item.set(e.target.checked)}
-                      style={{ accentColor: 'var(--color-primary)' }}
-                    />
-                    {item.label}
-                  </label>
-                ))}
+              {/* History Toggles */}
+              <div className="form-group">
+                <label className="form-label">特殊な施術履歴</label>
+                <div className="flex gap-xs flex-wrap">
+                  <button
+                    className={`chip ${hasStraightening ? 'chip-active' : ''}`}
+                    onClick={() => setHasStraightening(!hasStraightening)}
+                    style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  >
+                    {hasStraightening ? '✓ 縮毛矯正あり' : '+ 縮毛矯正'}
+                  </button>
+                  <button
+                    className={`chip ${hasPerm ? 'chip-active' : ''}`}
+                    onClick={() => setHasPerm(!hasPerm)}
+                    style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  >
+                    {hasPerm ? '✓ パーマあり' : '+ パーマ'}
+                  </button>
+                  <button
+                    className={`chip ${hasBlackDye ? 'chip-active' : ''}`}
+                    onClick={() => setHasBlackDye(!hasBlackDye)}
+                    style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  >
+                    {hasBlackDye ? '✓ 黒染めあり' : '+ 黒染め'}
+                  </button>
+                </div>
               </div>
 
               {/* Perm count (if perm history) */}
