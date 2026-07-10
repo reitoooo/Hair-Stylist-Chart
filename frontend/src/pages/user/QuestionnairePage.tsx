@@ -23,6 +23,8 @@ const INITIAL_DATA: QuestionnaireData = {
   perm_feasibility_notes: '',
   black_dye_count: 0,
   salon_vibe: '気にしない・美容師におまかせ',
+  hair_type: 'normal',
+  wants_design_color: false,
 };
 
 const INITIAL_ALLERGY: AllergyChecklistData = {
@@ -386,10 +388,50 @@ export default function QuestionnairePage() {
                 現在の髪の状態
               </h2>
               <p className="text-secondary text-sm" style={{ marginBottom: 'var(--space-xl)' }}>
-                今の髪色とダメージの程度を教えてください
+                今の髪色、ダメージの程度、髪質、デザインカラーの希望を教えてください
               </p>
 
               <div className="flex flex-col gap-lg">
+                <div className="form-group">
+                  <label className="form-label">髪質</label>
+                  <div className="flex gap-sm">
+                    {[
+                      { value: 'soft', label: '軟毛（細くてやわらかい）' },
+                      { value: 'normal', label: '普通' },
+                      { value: 'hard', label: '硬毛（太くて硬い）' },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        className={`chip ${data.hair_type === opt.value ? 'chip-active' : ''}`}
+                        onClick={() => setData({ ...data, hair_type: opt.value as 'soft' | 'normal' | 'hard' })}
+                        style={{ cursor: 'pointer', padding: '0.5rem 1rem', flex: 1 }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">デザインカラーの希望</label>
+                  <div className="flex gap-sm">
+                    <button
+                      className={`chip ${data.wants_design_color ? 'chip-active' : ''}`}
+                      onClick={() => setData({ ...data, wants_design_color: true })}
+                      style={{ cursor: 'pointer', padding: '0.5rem 1rem', flex: 1 }}
+                    >
+                      あり（ハイライト、インナーなど）
+                    </button>
+                    <button
+                      className={`chip ${!data.wants_design_color ? 'chip-active' : ''}`}
+                      onClick={() => setData({ ...data, wants_design_color: false })}
+                      style={{ cursor: 'pointer', padding: '0.5rem 1rem', flex: 1 }}
+                    >
+                      なし（全体カラーのみ）
+                    </button>
+                  </div>
+                </div>
+
                 <div className="form-group">
                   <label className="form-label">現在の髪色</label>
                   <input

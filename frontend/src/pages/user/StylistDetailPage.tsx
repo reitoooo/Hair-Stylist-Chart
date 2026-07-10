@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Star, MapPin, Clock, ChevronLeft, CalendarDays } from 'lucide-react';
+import { Star, MapPin, Clock, ChevronLeft, CalendarDays, Tag, Coffee, Smile } from 'lucide-react';
 import AuthModal from '../auth/AuthModal';
 
 // Same demo data (would come from API in production)
@@ -11,6 +11,8 @@ const DEMO_STYLISTS: Record<string, any> = {
     specialties: ['highlight', 'balayage', 'double_color', 'bleach', 'design_color'],
     product_brands: ['WELLA', 'THROW', 'ADMIIO', 'FIOLE'],
     years_experience: 8, location: '東京都渋谷区', rating: 4.8, review_count: 156,
+    base_price: 12000, salon_atmosphere: '洗練された・モダン', customer_service_style: '丁寧なカウンセリング・髪質改善提案',
+    portfolio_urls: ['/models/balayage.png'],
   },
   'stylist-002': {
     id: 'stylist-002', display_name: '鈴木 りな', avatar_url: null,
@@ -18,6 +20,8 @@ const DEMO_STYLISTS: Record<string, any> = {
     specialties: ['color', 'bleach', 'treatment', 'care_bleach', 'inner_color'],
     product_brands: ['MILBON', 'TOKIO', 'OLAPLEX', 'THROW'],
     years_experience: 5, location: '東京都表参道', rating: 4.9, review_count: 98,
+    base_price: 10000, salon_atmosphere: 'リラックス・プライベート', customer_service_style: '静かに過ごせる・リフレッシュ',
+    portfolio_urls: ['/models/bob.png'],
   },
   'stylist-003': {
     id: 'stylist-003', display_name: '山本 けんた', avatar_url: null,
@@ -25,6 +29,8 @@ const DEMO_STYLISTS: Record<string, any> = {
     specialties: ['vivid_color', 'bleach', 'design_color', 'men_color', 'unicorn_color'],
     product_brands: ['MANIC PANIC', 'COLORR', 'WELLA', 'N.'],
     years_experience: 6, location: '東京都原宿', rating: 4.7, review_count: 203,
+    base_price: 9000, salon_atmosphere: 'ポップ・にぎやか', customer_service_style: '楽しく会話したい・推し活トーク',
+    portfolio_urls: ['/models/vivid.png'],
   },
   'stylist-004': {
     id: 'stylist-004', display_name: '中村 みお', avatar_url: null,
@@ -32,6 +38,8 @@ const DEMO_STYLISTS: Record<string, any> = {
     specialties: ['gradation', 'transparent_color', 'natural_highlight', 'color', 'cut'],
     product_brands: ['ILLUMINA', 'ADMIIO', 'ARIMINO', 'MILBON'],
     years_experience: 10, location: '東京都銀座', rating: 4.9, review_count: 312,
+    base_price: 15000, salon_atmosphere: 'ラグジュアリー・落ち着き', customer_service_style: '丁寧なカウンセリング・お悩み相談',
+    portfolio_urls: ['/models/bob.png', '/models/balayage.png'],
   },
   'stylist-005': {
     id: 'stylist-005', display_name: '斎藤 はると', avatar_url: null,
@@ -39,6 +47,8 @@ const DEMO_STYLISTS: Record<string, any> = {
     specialties: ['color_correction', 'bleach', 'damage_repair', 'double_color', 'dark_to_light'],
     product_brands: ['WELLA', 'OLAPLEX', 'TOKIO', 'FIOLE', 'MUCOTA'],
     years_experience: 12, location: '東京都新宿区', rating: 4.6, review_count: 87,
+    base_price: 14000, salon_atmosphere: 'アットホーム', customer_service_style: '専門的なアドバイス・ダメージケア',
+    portfolio_urls: [],
   },
 };
 
@@ -122,7 +132,7 @@ export default function StylistDetailPage() {
             {stylist.display_name}
           </h1>
 
-          <div className="flex items-center justify-center gap-md text-secondary" style={{ marginBottom: 'var(--space-lg)', flexWrap: 'wrap' }}>
+          <div className="flex items-center justify-center gap-md text-secondary" style={{ marginBottom: 'var(--space-md)', flexWrap: 'wrap' }}>
             <span className="flex items-center gap-xs">
               <MapPin size={16} />
               {stylist.location}
@@ -131,10 +141,25 @@ export default function StylistDetailPage() {
               <Clock size={16} />
               経験{stylist.years_experience}年
             </span>
+            <span className="flex items-center gap-xs text-primary" style={{ fontWeight: 600 }}>
+              <Tag size={16} />
+              ¥{stylist.base_price?.toLocaleString()}〜
+            </span>
             <span className="rating flex items-center gap-xs">
               <Star size={16} fill="currentColor" />
               {stylist.rating}
               <span className="text-muted">({stylist.review_count}件)</span>
+            </span>
+          </div>
+
+          <div className="flex items-center justify-center gap-lg text-sm text-muted" style={{ marginBottom: 'var(--space-lg)', flexWrap: 'wrap' }}>
+            <span className="flex items-center gap-xs">
+              <Coffee size={14} />
+              {stylist.salon_atmosphere}
+            </span>
+            <span className="flex items-center gap-xs">
+              <Smile size={14} />
+              {stylist.customer_service_style}
             </span>
           </div>
 
@@ -158,6 +183,48 @@ export default function StylistDetailPage() {
           <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8, fontSize: 'var(--font-size-sm)' }}>
             {stylist.bio}
           </p>
+        </div>
+
+        {/* Portfolio / Hair Models */}
+        {stylist.portfolio_urls && stylist.portfolio_urls.length > 0 && (
+          <div className="glass-card-static animate-fade-in-up" style={{ marginBottom: 'var(--space-lg)', animationDelay: '100ms' }}>
+            <h3 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, marginBottom: 'var(--space-md)' }}>
+              ヘアモデル・ポートフォリオ
+            </h3>
+            <div className="grid grid-cols-2 gap-sm">
+              {stylist.portfolio_urls.map((url: string, index: number) => (
+                <div key={index} style={{ 
+                  borderRadius: 'var(--radius-md)', 
+                  overflow: 'hidden',
+                  aspectRatio: '3/4',
+                  boxShadow: 'var(--shadow-md)',
+                }} className="animate-float">
+                  <img src={url} alt={`ヘアモデル ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Atmosphere & Service */}
+        <div className="glass-card-static" style={{ marginBottom: 'var(--space-lg)' }}>
+          <h3 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, marginBottom: 'var(--space-md)' }}>
+            サロンの雰囲気・接客スタイル
+          </h3>
+          <div className="flex flex-col gap-sm text-secondary text-sm">
+            <div className="flex items-center gap-sm">
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(139, 92, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary-light)' }}>
+                <Coffee size={16} />
+              </div>
+              <span style={{ fontWeight: 500 }}>雰囲気:</span> {stylist.salon_atmosphere}
+            </div>
+            <div className="flex items-center gap-sm">
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(236, 72, 153, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-accent-light)' }}>
+                <Smile size={16} />
+              </div>
+              <span style={{ fontWeight: 500 }}>接客:</span> {stylist.customer_service_style}
+            </div>
+          </div>
         </div>
 
         {/* Specialties */}

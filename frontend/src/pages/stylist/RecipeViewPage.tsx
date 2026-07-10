@@ -2,18 +2,19 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   ChevronLeft, Sparkles, Clock, AlertTriangle, Package,
-  ListOrdered, Send, User, FileText, FileSignature, Beaker
+  ListOrdered, Send, User, FileText, FileSignature, Beaker,
+  Image as ImageIcon, Upload, X
 } from 'lucide-react';
-import type { SOAPChart, SOAPChartUpdate, AllergyChecklist } from '../../types';
+import type { SOAPChart, SOAPChartUpdate, AllergyChecklist, MedicalRecord, MedicalRecordCreate } from '../../types';
 
 // Demo recipe data
 const DEMO_RECIPE = {
   recipe_text: `## 施術レシピ：ハイトーンベージュカラー\n\n### 事前診断\nお客様の問診によると、過去に2回のブリーチ履歴があり、黒染め履歴はありません。現在のダメージレベルは中程度（レベル3）です。\n髪の長さはミディアムで、スムーズなスタイルチェンジが期待できます。`,
   recommended_products: [
-    { name: 'WELLA ブロンドール マルチブロンド', type: 'ブリーチ剤', usage: 'ステップ 3' },
-    { name: 'OLAPLEX No.0 + No.2', type: '結合強化トリートメント', usage: 'ステップ 2 & 5' },
-    { name: 'THROW Color 9-Beige', type: 'カラー剤', usage: 'ステップ 4' },
-    { name: 'THROW Color 9-Monotone', type: 'カラー剤', usage: 'ステップ 4' },
+    { name: 'WELLA ブロンドール マルチブロンド', type: 'ブリーチ剤', usage: 'ステップ 3', price_per_gram: 15, amount_g: 50 },
+    { name: 'OLAPLEX No.0 + No.2', type: '結合強化トリートメント', usage: 'ステップ 2 & 5', price_per_gram: 35, amount_g: 20 },
+    { name: 'THROW Color 9-Beige', type: 'カラー剤', usage: 'ステップ 4', price_per_gram: 10, amount_g: 40 },
+    { name: 'THROW Color 9-Monotone', type: 'カラー剤', usage: 'ステップ 4', price_per_gram: 10, amount_g: 20 },
   ],
   procedure_steps: [
     {
@@ -62,7 +63,7 @@ export default function RecipeViewPage() {
   const navigate = useNavigate();
   const [chatMessages, setChatMessages] = useState<{ sender: string; text: string; time: string }[]>([]);
   const [chatInput, setChatInput] = useState('');
-  const [activeTab, setActiveTab] = useState<'recipe' | 'soap'>('recipe');
+  const [activeTab, setActiveTab] = useState<'recipe' | 'soap' | 'record'>('recipe');
 
   // Features: Allergy & SOAP
   const [allergyData, setAllergyData] = useState<AllergyChecklist | null>(null);
@@ -70,6 +71,37 @@ export default function RecipeViewPage() {
   const [isEditingSoap, setIsEditingSoap] = useState(false);
   const [soapEditForm, setSoapEditForm] = useState<SOAPChartUpdate>({});
   const [isGeneratingSoap, setIsGeneratingSoap] = useState(false);
+
+  // Feature: Medical Record (最終カルテ)
+  const [medicalRecord, setMedicalRecord] = useState<MedicalRecord | null>(null);
+  const [isEditingRecord, setIsEditingRecord] = useState(false);
+  const [recordEditForm, setRecordEditForm] = useState<Partial<MedicalRecordCreate>>({
+    actual_recipe: '',
+    private_notes: '',
+    before_image_urls: [],
+    after_image_urls: [],
+  });
+
+  const handleImageUpload = (type: 'before' | 'after') => {
+    // Mock image upload
+    const mockUrl = `https://images.unsplash.com/photo-${Date.now()}?auto=format&fit=crop&q=80&w=300`;
+    setRecordEditForm(prev => ({
+      ...prev,
+      [type === 'before' ? 'before_image_urls' : 'after_image_urls']: [
+        ...(prev[type === 'before' ? 'before_image_urls' : 'after_image_urls'] || []),
+        mockUrl
+      ]
+    }));
+  };
+
+  const removeImage = (type: 'before' | 'after', index: number) => {
+    setRecordEditForm(prev => {
+      const field = type === 'before' ? 'before_image_urls' : 'after_image_urls';
+      const arr = [...(prev[field] || [])];
+      arr.splice(index, 1);
+      return { ...prev, [field]: arr };
+    });
+  };
 
   const [recipe] = useState(() => {
     const defaultRec = { ...DEMO_RECIPE };
@@ -151,6 +183,24 @@ export default function RecipeViewPage() {
     }
     setIsEditingSoap(false);
   };
+
+  const handleSaveRecord = () => {
+    // Mock save logic
+    const newRecord: MedicalRecord = {
+      id: `record-${Date.now()}`,
+      booking_id: bookingId || '',
+      stylist_id: 'stylist-001',
+      user_id: 'user-123',
+      actual_recipe: recordEditForm.actual_recipe || '',
+      private_notes: recordEditForm.private_notes || '',
+      before_image_urls: recordEditForm.before_image_urls || [],
+      after_image_urls: recordEditForm.after_image_urls || [],
+      created_at: new Date().toISOString(),
+    };
+    setMedicalRecord(newRecord);
+    setIsEditingRecord(false);
+  };
+
 
   const hasAllergyRisk = allergyData && (
     allergyData.has_skin_trouble ||
@@ -335,6 +385,13 @@ export default function RecipeViewPage() {
               >
                 <FileSignature size={16} className="inline-block mr-xs" style={{ marginRight: '6px' }} /> SOAPカルテ
               </button>
+              <button 
+                className={`px-lg py-sm font-semibold transition-colors ${activeTab === 'record' ? 'text-primary-light border-b-2 border-primary' : 'text-secondary hover:text-primary'}`}
+                style={{ padding: '0.75rem 1.5rem', borderBottom: activeTab === 'record' ? '2px solid var(--color-primary)' : '2px solid transparent' }}
+                onClick={() => setActiveTab('record')}
+              >
+                <FileText size={16} className="inline-block mr-xs" style={{ marginRight: '6px' }} /> 最終カルテ(実績)
+              </button>
             </div>
 
             {/* TAB CONTENT: AI RECIPE */}
@@ -382,12 +439,26 @@ export default function RecipeViewPage() {
                     {recipe.recommended_products.map((p, i) => (
                       <div key={i} className="bg-tertiary p-md rounded-md border border-subtle" style={{ padding: 'var(--space-md)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                         <div className="font-semibold text-sm mb-xs" style={{ marginBottom: '4px' }}>{p.name}</div>
-                        <div className="flex gap-sm text-xs">
+                        <div className="flex gap-sm text-xs" style={{ marginBottom: '4px' }}>
                           <span className="chip chip-cyan">{p.type}</span>
                           <span className="text-muted">{p.usage}</span>
                         </div>
+                        <div className="flex justify-between text-xs text-secondary" style={{ marginTop: '4px' }}>
+                          <span>{p.amount_g}g × ¥{p.price_per_gram}/g</span>
+                          <span className="font-semibold" style={{ color: 'var(--color-primary-light)' }}>¥{(p.amount_g * p.price_per_gram).toLocaleString()}</span>
+                        </div>
                       </div>
                     ))}
+                  </div>
+
+                  {/* 薬剤原価合計 */}
+                  <div style={{ padding: 'var(--space-md)', background: 'rgba(139, 92, 246, 0.06)', border: '1px solid rgba(139, 92, 246, 0.15)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-xl)' }}>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-semibold">薬剤原価見積もり</span>
+                      <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, color: 'var(--color-primary-light)' }}>
+                        ¥{recipe.recommended_products.reduce((sum, p) => sum + p.amount_g * p.price_per_gram, 0).toLocaleString()}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Risk Notes */}
@@ -493,6 +564,175 @@ export default function RecipeViewPage() {
                 )}
               </div>
             )}
+
+            {/* TAB CONTENT: MEDICAL RECORD (Feature 8) */}
+            {activeTab === 'record' && (
+              <div className="animate-fade-in-up">
+                {!medicalRecord && !isEditingRecord ? (
+                  <div className="glass-card-static flex flex-col items-center justify-center" style={{ minHeight: '300px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    <FileText size={48} style={{ opacity: 0.2, marginBottom: 'var(--space-md)' }} />
+                    <p style={{ marginBottom: 'var(--space-md)' }}>施術後の最終カルテがまだ登録されていません</p>
+                    <button className="btn btn-primary" onClick={() => {
+                      if (!medicalRecord?.actual_recipe) {
+                        setRecordEditForm(prev => ({
+                          ...prev,
+                          actual_recipe: recipe.recommended_products.map(p => `${p.name} (${p.usage})`).join('\n')
+                        }));
+                      }
+                      setIsEditingRecord(true);
+                    }}>
+                      <Sparkles size={16} /> 最終カルテを作成する
+                    </button>
+                  </div>
+                ) : (
+                  <div className="glass-card-static" style={{ position: 'relative' }}>
+                    <div className="flex items-center justify-between mb-lg" style={{ marginBottom: 'var(--space-lg)' }}>
+                      <h2 className="text-xl font-bold text-gradient">施術実績・最終カルテ</h2>
+                      {!isEditingRecord ? (
+                        <button className="btn btn-secondary btn-sm" onClick={() => {
+                          if (!medicalRecord?.actual_recipe) {
+                            // Pre-fill with AI recipe text
+                            setRecordEditForm(prev => ({
+                              ...prev,
+                              actual_recipe: recipe.recommended_products.map(p => `${p.name} (${p.usage})`).join('\n')
+                            }));
+                          } else {
+                            setRecordEditForm({
+                              actual_recipe: medicalRecord.actual_recipe,
+                              private_notes: medicalRecord.private_notes,
+                              before_image_urls: medicalRecord.before_image_urls,
+                              after_image_urls: medicalRecord.after_image_urls,
+                            });
+                          }
+                          setIsEditingRecord(true);
+                        }}>
+                          編集する
+                        </button>
+                      ) : (
+                        <div className="flex gap-sm">
+                          {medicalRecord && (
+                            <button className="btn btn-ghost btn-sm" onClick={() => setIsEditingRecord(false)}>キャンセル</button>
+                          )}
+                          <button className="btn btn-primary btn-sm" onClick={handleSaveRecord}>保存</button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid gap-md" style={{ gridTemplateColumns: '1fr' }}>
+                      {/* 実際の使用薬剤・レシピ */}
+                      <div className="bg-tertiary p-md rounded-lg border border-default" style={{ padding: 'var(--space-md)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-default)' }}>
+                        <h4 className="flex items-center gap-xs font-semibold mb-sm" style={{ color: 'var(--color-primary-light)', marginBottom: 'var(--space-sm)' }}>
+                          実際の使用薬剤・レシピ
+                        </h4>
+                        {isEditingRecord ? (
+                          <textarea 
+                            className="form-input form-textarea w-full text-sm" 
+                            placeholder="例: イルミナカラー オーシャン8 + サファリ8 (1:1) 4.5%オキシ"
+                            value={recordEditForm.actual_recipe} 
+                            onChange={e => setRecordEditForm({...recordEditForm, actual_recipe: e.target.value})} 
+                            rows={5} 
+                          />
+                        ) : (
+                          <div className="text-sm text-secondary whitespace-pre-wrap leading-relaxed">{medicalRecord?.actual_recipe || '未登録'}</div>
+                        )}
+                      </div>
+
+                      {/* 美容師用非公開メモ */}
+                      <div className="bg-tertiary p-md rounded-lg border border-default" style={{ padding: 'var(--space-md)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-default)' }}>
+                        <h4 className="flex items-center gap-xs font-semibold mb-sm text-secondary" style={{ marginBottom: 'var(--space-sm)' }}>
+                          非公開メモ（次回への引継ぎ事項など）
+                        </h4>
+                        {isEditingRecord ? (
+                          <textarea 
+                            className="form-input form-textarea w-full text-sm" 
+                            placeholder="例: 毛先の入りが早かったので次回は時間短め。K-POPアイドルの話題で盛り上がった。"
+                            value={recordEditForm.private_notes} 
+                            onChange={e => setRecordEditForm({...recordEditForm, private_notes: e.target.value})} 
+                            rows={4} 
+                          />
+                        ) : (
+                          <div className="text-sm text-secondary whitespace-pre-wrap leading-relaxed">{medicalRecord?.private_notes || 'なし'}</div>
+                        )}
+                      </div>
+
+                      {/* Before / After 写真 */}
+                      <div className="bg-tertiary p-md rounded-lg border border-default" style={{ padding: 'var(--space-md)', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-default)' }}>
+                        <h4 className="flex items-center gap-xs font-semibold mb-sm" style={{ marginBottom: 'var(--space-sm)' }}>
+                          <ImageIcon size={16} /> Before / After 写真
+                        </h4>
+                        
+                        <div className="grid grid-cols-2 gap-md">
+                          {/* Before Images */}
+                          <div>
+                            <div className="text-xs font-semibold text-secondary mb-xs">Before</div>
+                            <div className="flex flex-wrap gap-sm">
+                              {(isEditingRecord ? recordEditForm.before_image_urls : medicalRecord?.before_image_urls)?.map((url, i) => (
+                                <div key={i} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', backgroundColor: '#e2e8f0' }}>
+                                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                                    <ImageIcon size={24} />
+                                  </div>
+                                  {isEditingRecord && (
+                                    <button onClick={() => removeImage('before', i)} style={{ position: 'absolute', top: '2px', right: '2px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', padding: '2px', cursor: 'pointer' }}>
+                                      <X size={12} />
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                              {isEditingRecord && (
+                                <button 
+                                  onClick={() => handleImageUpload('before')}
+                                  style={{ width: '80px', height: '80px', borderRadius: 'var(--radius-sm)', border: '1px dashed var(--border-default)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'transparent' }}
+                                  className="text-secondary hover:text-primary hover:border-primary transition-colors"
+                                >
+                                  <Upload size={16} className="mb-xs" />
+                                  <span style={{ fontSize: '10px' }}>アップロード</span>
+                                </button>
+                              )}
+                              {!isEditingRecord && !(medicalRecord?.before_image_urls?.length) && (
+                                <div className="text-xs text-muted">画像なし</div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* After Images */}
+                          <div>
+                            <div className="text-xs font-semibold text-secondary mb-xs">After</div>
+                            <div className="flex flex-wrap gap-sm">
+                              {(isEditingRecord ? recordEditForm.after_image_urls : medicalRecord?.after_image_urls)?.map((url, i) => (
+                                <div key={i} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', backgroundColor: '#e2e8f0' }}>
+                                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                                    <ImageIcon size={24} />
+                                  </div>
+                                  {isEditingRecord && (
+                                    <button onClick={() => removeImage('after', i)} style={{ position: 'absolute', top: '2px', right: '2px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', padding: '2px', cursor: 'pointer' }}>
+                                      <X size={12} />
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                              {isEditingRecord && (
+                                <button 
+                                  onClick={() => handleImageUpload('after')}
+                                  style={{ width: '80px', height: '80px', borderRadius: 'var(--radius-sm)', border: '1px dashed var(--border-default)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'transparent' }}
+                                  className="text-secondary hover:text-primary hover:border-primary transition-colors"
+                                >
+                                  <Upload size={16} className="mb-xs" />
+                                  <span style={{ fontSize: '10px' }}>アップロード</span>
+                                </button>
+                              )}
+                              {!isEditingRecord && !(medicalRecord?.after_image_urls?.length) && (
+                                <div className="text-xs text-muted">画像なし</div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
 
             {/* Chat with Client Section */}
             <div className="glass-card-static mt-lg" style={{ marginTop: 'var(--space-lg)' }}>

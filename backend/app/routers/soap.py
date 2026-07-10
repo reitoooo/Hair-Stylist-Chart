@@ -6,13 +6,14 @@ from fastapi import APIRouter, HTTPException, Header
 from datetime import datetime, timezone
 import uuid
 
-from app.models.schemas import SOAPChartCreate, SOAPChartUpdate, SOAPChartResponse
+from app.models.schemas import SOAPChartCreate, SOAPChartUpdate, SOAPChartResponse, MedicalRecordCreate, MedicalRecordResponse
 from app.services.soap_generator import generate_soap_chart
 
 router = APIRouter()
 
 # In-memory store
 _soap_charts: dict[str, dict] = {}
+_medical_records: dict[str, dict] = {}
 
 
 @router.post("/soap", response_model=SOAPChartResponse)
@@ -84,3 +85,39 @@ async def auto_generate_soap(
     )
     _soap_charts[chart["id"]] = chart
     return SOAPChartResponse(**chart)
+
+
+# ──────────────────────────────────────────────
+# Medical Records (カルテ)
+# ──────────────────────────────────────────────
+
+@router.post("/medical-records", response_model=MedicalRecordResponse)
+async def create_medical_record(
+    data: MedicalRecordCreate,
+    x_user_id: str = Header(default="demo-stylist-001"),
+):
+    """Save the final medical record (actual recipe, photos, notes) after the session."""
+    record = {
+        "id": str(uuid.uuid4()),
+        **data.model_dump(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    _medical_records[record["id"]] = record
+    return MedicalRecordResponse(**record)
+
+
+@router.get("/medical-records/booking/{booking_id}", response_model=MedicalRecordResponse)
+async def get_medical_record_by_booking(booking_id: str):
+    """Get the final medical record for a specific booking."""
+    for rec in _medical_records.values():
+        if rec["booking_id"] == booking_id:
+            return MedicalRecordResponse(**rec)
+    raise HTTPException(status_code=404, detail="Medical record not found for this booking")
+
+
+@router.get("/medical-records/client/{user_id}", response_model=list[MedicalRecordResponse])
+async def get_medical_records_by_client(user_id: str):
+    """Get all medical records for a specific client (CRM)."""
+    records = [rec for rec in _medical_records.values() if rec["user_id"] == user_id]
+    return [MedicalRecordResponse(**rec) for rec in records]
+

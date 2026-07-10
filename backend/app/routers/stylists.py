@@ -5,11 +5,15 @@ Stylists router — handles stylist profile CRUD and search.
 from fastapi import APIRouter, HTTPException, Header, Query
 from datetime import datetime, timezone
 import uuid
+from typing import Any
 
 from app.models.schemas import (
     StylistProfileCreate,
     StylistProfileUpdate,
     StylistProfileResponse,
+    StylistInventoryUpdate,
+    StylistInventoryResponse,
+    InventoryItem,
 )
 
 router = APIRouter()
@@ -177,3 +181,40 @@ async def update_stylist_profile(
     record.update(update_data)
     _stylist_profiles[stylist_id] = record
     return StylistProfileResponse(**record)
+
+
+# ──────────────────────────────────────────────
+# Inventory Endpoints (Phase 2)
+# ──────────────────────────────────────────────
+
+@router.get("/stylists/{stylist_id}/inventory", response_model=StylistInventoryResponse)
+async def get_stylist_inventory(stylist_id: str):
+    """Get the inventory of a stylist."""
+    if stylist_id not in _stylist_inventories:
+        # Return an empty inventory by default if none exists
+        return StylistInventoryResponse(
+            stylist_id=stylist_id,
+            items=[],
+            updated_at=datetime.now(timezone.utc).isoformat()
+        )
+    return StylistInventoryResponse(**_stylist_inventories[stylist_id])
+
+
+@router.put("/stylists/{stylist_id}/inventory", response_model=StylistInventoryResponse)
+async def update_stylist_inventory(
+    stylist_id: str,
+    data: StylistInventoryUpdate,
+    x_user_id: str = Header(default="demo-stylist-001"),
+):
+    """Update a stylist's inventory."""
+    # Ensure they are only updating their own inventory
+    # if stylist_id != x_user_id:
+    #     raise HTTPException(status_code=403, detail="Forbidden")
+
+    record = {
+        "stylist_id": stylist_id,
+        "items": [item.model_dump() for item in data.items],
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    _stylist_inventories[stylist_id] = record
+    return StylistInventoryResponse(**record)

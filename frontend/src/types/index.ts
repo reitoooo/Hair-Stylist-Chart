@@ -47,6 +47,8 @@ export interface QuestionnaireData {
   perm_feasibility_notes: string;
   black_dye_count: number;
   salon_vibe: string;
+  hair_type: 'soft' | 'normal' | 'hard';
+  wants_design_color: boolean;
 }
 
 export interface Questionnaire extends QuestionnaireData {
@@ -113,6 +115,9 @@ export interface StylistProfile {
   rating: number;
   review_count: number;
   created_at: string;
+  base_price: number;
+  salon_atmosphere: string;
+  customer_service_style: string;
 }
 
 export interface StylistProfileUpdate {
@@ -122,6 +127,22 @@ export interface StylistProfileUpdate {
   years_experience?: number;
   location?: string;
   portfolio_urls?: string[];
+  base_price?: number;
+  salon_atmosphere?: string;
+  customer_service_style?: string;
+}
+
+export interface InventoryItem {
+  brand_name: string;
+  product_line: string;
+  is_available: boolean;
+  price_per_gram: number;  // yen per gram (or ml)
+}
+
+export interface StylistInventory {
+  stylist_id: string;
+  items: InventoryItem[];
+  updated_at: string;
 }
 
 // ──────────────────────────────────────────────
@@ -211,6 +232,8 @@ export interface ChemicalCalculationRequest {
   has_black_dye: boolean;
   hair_length: string;
   perm_count: number;
+  hair_type: 'soft' | 'normal' | 'hard';
+  wants_design_color: boolean;
 }
 
 export interface ChemicalAgent {
@@ -351,3 +374,22 @@ export const SALON_VIBE_OPTIONS = [
   { value: '髪の悩みやお手入れについてだけ話したい', label: '髪の悩みやお手入れについてだけ話したい', icon: '💇‍♀️' },
   { value: '楽しく会話したい', label: '楽しく会話したい', icon: '🗣️' },
 ];
+
+// ──────────────────────────────────────────────
+// Medical Records (カルテ)
+// ──────────────────────────────────────────────
+
+export interface MedicalRecordCreate {
+  booking_id: string;
+  stylist_id: string;
+  user_id: string;
+  actual_recipe: string;
+  before_image_urls: string[];
+  after_image_urls: string[];
+  private_notes: string;
+}
+
+export interface MedicalRecord extends MedicalRecordCreate {
+  id: string;
+  created_at: string;
+}

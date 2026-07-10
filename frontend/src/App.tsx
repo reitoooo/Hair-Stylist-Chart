@@ -16,6 +16,8 @@ import RecipeViewPage from './pages/stylist/RecipeViewPage';
 import ProfileEditPage from './pages/stylist/ProfileEditPage';
 import ChemicalCalculatorPage from './pages/stylist/ChemicalCalculatorPage';
 import ClientHistoryPage from './pages/stylist/ClientHistoryPage';
+import ClientListPage from './pages/stylist/ClientListPage';
+import InventoryManagementPage from './pages/stylist/InventoryManagementPage';
 import './styles/index.css';
 
 function AppHeader() {
@@ -67,6 +69,16 @@ function AppHeader() {
                 <li>
                   <Link to="/stylist/dashboard" className={`nav-link ${location.pathname === '/stylist/dashboard' ? 'active' : ''}`}>
                     ダッシュボード
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/stylist/clients" className={`nav-link ${location.pathname.startsWith('/stylist/client') ? 'active' : ''}`}>
+                    顧客リスト
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/stylist/inventory" className={`nav-link ${location.pathname === '/stylist/inventory' ? 'active' : ''}`}>
+                    薬剤管理
                   </Link>
                 </li>
                 <li>
@@ -145,6 +157,8 @@ function AppHeader() {
           ) : (
             <div className="flex flex-col gap-sm">
               <Link to="/stylist/dashboard" className="nav-link" onClick={() => setMobileMenuOpen(false)}>ダッシュボード</Link>
+              <Link to="/stylist/clients" className="nav-link" onClick={() => setMobileMenuOpen(false)}>顧客リスト</Link>
+              <Link to="/stylist/inventory" className="nav-link" onClick={() => setMobileMenuOpen(false)}>薬剤管理</Link>
               <Link to="/stylist/profile" className="nav-link" onClick={() => setMobileMenuOpen(false)}>プロフィール</Link>
             </div>
           )}
@@ -233,7 +247,9 @@ function App() {
           <Route path="/stylist/dashboard" element={<StylistDashboard />} />
           <Route path="/stylist/recipe/:bookingId" element={<RecipeViewPage />} />
           <Route path="/stylist/chemicals/:bookingId" element={<ChemicalCalculatorPage />} />
+          <Route path="/stylist/clients" element={<ClientListPage />} />
           <Route path="/stylist/client/:clientId" element={<ClientHistoryPage />} />
+          <Route path="/stylist/inventory" element={<InventoryManagementPage />} />
           <Route path="/stylist/profile" element={<ProfileEditPage />} />
         </Routes>
       </main>

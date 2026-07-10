@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, MapPin, Clock, Award, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { Star, MapPin, Clock, Search, SlidersHorizontal, Sparkles, Tag, Coffee, Smile } from 'lucide-react';
 import type { StylistProfile, QuestionnaireData } from '../../types';
 
 // Demo stylist data (mirrors backend seed data)
@@ -15,10 +15,13 @@ const DEMO_STYLISTS: StylistProfile[] = [
     product_brands: ['WELLA', 'THROW', 'ADMIIO', 'FIOLE'],
     years_experience: 8,
     location: '東京都渋谷区',
-    portfolio_urls: [],
     rating: 4.8,
     review_count: 156,
     created_at: new Date().toISOString(),
+    base_price: 12000,
+    salon_atmosphere: '洗練された・モダン',
+    customer_service_style: '丁寧なカウンセリング・髪質改善提案',
+    portfolio_urls: ['/models/balayage.png'],
   },
   {
     id: 'stylist-002',
@@ -30,10 +33,13 @@ const DEMO_STYLISTS: StylistProfile[] = [
     product_brands: ['MILBON', 'TOKIO', 'OLAPLEX', 'THROW'],
     years_experience: 5,
     location: '東京都表参道',
-    portfolio_urls: [],
     rating: 4.9,
     review_count: 98,
     created_at: new Date().toISOString(),
+    base_price: 10000,
+    salon_atmosphere: 'リラックス・プライベート',
+    customer_service_style: '静かに過ごせる・リフレッシュ',
+    portfolio_urls: ['/models/bob.png'],
   },
   {
     id: 'stylist-003',
@@ -45,10 +51,13 @@ const DEMO_STYLISTS: StylistProfile[] = [
     product_brands: ['MANIC PANIC', 'COLORR', 'WELLA', 'N.'],
     years_experience: 6,
     location: '東京都原宿',
-    portfolio_urls: [],
     rating: 4.7,
     review_count: 203,
     created_at: new Date().toISOString(),
+    base_price: 9000,
+    salon_atmosphere: 'ポップ・にぎやか',
+    customer_service_style: '楽しく会話したい・推し活トーク',
+    portfolio_urls: ['/models/vivid.png'],
   },
   {
     id: 'stylist-004',
@@ -60,10 +69,13 @@ const DEMO_STYLISTS: StylistProfile[] = [
     product_brands: ['ILLUMINA', 'ADMIIO', 'ARIMINO', 'MILBON'],
     years_experience: 10,
     location: '東京都銀座',
-    portfolio_urls: [],
     rating: 4.9,
     review_count: 312,
     created_at: new Date().toISOString(),
+    base_price: 15000,
+    salon_atmosphere: 'ラグジュアリー・落ち着き',
+    customer_service_style: '丁寧なカウンセリング・お悩み相談',
+    portfolio_urls: ['/models/bob.png', '/models/balayage.png'],
   },
   {
     id: 'stylist-005',
@@ -75,10 +87,13 @@ const DEMO_STYLISTS: StylistProfile[] = [
     product_brands: ['WELLA', 'OLAPLEX', 'TOKIO', 'FIOLE', 'MUCOTA'],
     years_experience: 12,
     location: '東京都新宿区',
-    portfolio_urls: [],
     rating: 4.6,
     review_count: 87,
     created_at: new Date().toISOString(),
+    base_price: 14000,
+    salon_atmosphere: 'アットホーム',
+    customer_service_style: '専門的なアドバイス・ダメージケア',
+    portfolio_urls: [],
   },
 ];
 
@@ -321,7 +336,7 @@ export default function StylistListPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-md text-sm text-secondary" style={{ marginBottom: 'var(--space-xs)' }}>
+                  <div className="flex items-center gap-md text-sm text-secondary flex-wrap" style={{ marginBottom: 'var(--space-xs)' }}>
                     <span className="flex items-center gap-xs">
                       <MapPin size={14} />
                       {stylist.location}
@@ -330,9 +345,20 @@ export default function StylistListPage() {
                       <Clock size={14} />
                       {stylist.years_experience}年
                     </span>
+                    <span className="flex items-center gap-xs text-primary" style={{ fontWeight: 600 }}>
+                      <Tag size={14} />
+                      ¥{stylist.base_price.toLocaleString()}〜
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-md text-xs text-muted flex-wrap" style={{ marginBottom: 'var(--space-md)' }}>
                     <span className="flex items-center gap-xs">
-                      <Award size={14} />
-                      {stylist.product_brands.length}ブランド
+                      <Coffee size={12} />
+                      {stylist.salon_atmosphere}
+                    </span>
+                    <span className="flex items-center gap-xs">
+                      <Smile size={12} />
+                      {stylist.customer_service_style}
                     </span>
                   </div>
 

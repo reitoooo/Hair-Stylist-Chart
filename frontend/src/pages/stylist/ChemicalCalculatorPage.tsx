@@ -63,32 +63,32 @@ export default function ChemicalCalculatorPage() {
           {
             agent: {
               id: 'agent-1',
-              name: damageLevel >= 4 ? 'Acidic Color (Acid-based)' : damageLevel >= 3 ? 'Low-Alkaline Color' : 'Medium-Alkaline Oxidation Color',
-              type: damageLevel >= 4 ? 'acidic' : 'alkaline',
+              name: damageLevel >= 4 ? '酸性カラー (酸性染料)' : damageLevel >= 3 ? '微アルカリカラー' : '中アルカリカラー',
+              type: damageLevel >= 4 ? '酸性' : 'アルカリ性',
               strength: damageLevel >= 4 ? 'low' : damageLevel >= 3 ? 'low' : 'medium',
               ph_range: damageLevel >= 4 ? '3.5-6.0' : damageLevel >= 3 ? '7.5-8.0' : '8.0-9.0',
-              description: 'Primary color/treatment agent selected based on hair condition',
+              description: '髪の状態に基づいて選択された主剤',
               risk_level: damageLevel >= 4 ? 0 : damageLevel >= 3 ? 1 : 2,
               suitable_damage_max: damageLevel >= 4 ? 5 : damageLevel >= 3 ? 4 : 3,
             },
-            role: 'Primary Agent',
-            mix_ratio: '1:1 with developer',
-            reason: `Selected based on damage level ${damageLevel}/5`,
+            role: '1液 (主剤)',
+            mix_ratio: '2液と1:1',
+            reason: `ダメージレベル ${damageLevel}/5 に基づき選択`,
           },
           {
             agent: {
               id: 'agent-dev',
-              name: damageLevel >= 3 ? '3% Developer (10 Vol)' : '6% Developer (20 Vol)',
+              name: damageLevel >= 3 ? '3% オキシ (10 Vol)' : '6% オキシ (20 Vol)',
               type: 'developer',
               strength: damageLevel >= 3 ? 'low' : 'medium',
               ph_range: '2.5-3.5',
-              description: 'Oxidizing developer',
+              description: '酸化剤 (デベロッパー)',
               risk_level: damageLevel >= 3 ? 0 : 1,
               suitable_damage_max: 5,
             },
-            role: 'Developer (Oxidizer)',
-            mix_ratio: 'See primary agent ratio',
-            reason: 'Volume adjusted for damage level',
+            role: '2液 (酸化剤)',
+            mix_ratio: '1液の比率を参照',
+            reason: 'ダメージレベルに合わせて濃度を調整',
           },
           {
             agent: {
@@ -97,37 +97,37 @@ export default function ChemicalCalculatorPage() {
               type: 'treatment',
               strength: 'low',
               ph_range: '3.0-4.0',
-              description: 'Bond protection treatment',
+              description: '結合強化トリートメント',
               risk_level: 0,
               suitable_damage_max: 5,
             },
-            role: 'Bond Protection',
-            mix_ratio: '1.5ml per 30g',
-            reason: 'Protect bonds during processing',
+            role: '結合保護',
+            mix_ratio: '30gに対して1.5ml',
+            reason: '施術中の結合を保護',
           },
         ],
         processing_time_minutes: Math.round((targetTreatment === 'bleach' ? 45 : targetTreatment === 'perm' ? 20 : 35) * (hairLength === 'long' ? 1.2 : hairLength === 'short' ? 0.7 : 1)),
         risk_score: Math.round(riskScore * 10) / 10,
         risk_factors: [
-          ...(damageLevel >= 3 ? ['Moderate to high damage level'] : []),
-          ...(bleachCount >= 2 ? ['Multiple bleach history'] : []),
-          ...(hasStraightening && targetTreatment === 'perm' ? ['Straightening + Perm combination — HIGH RISK'] : []),
-          ...(permCount >= 5 ? ['5+ perm treatments — structural concern'] : []),
-          ...(hasBlackDye ? ['Black dye history — may cause uneven results'] : []),
+          ...(damageLevel >= 3 ? ['中〜高ダメージ'] : []),
+          ...(bleachCount >= 2 ? ['複数回のブリーチ履歴'] : []),
+          ...(hasStraightening && targetTreatment === 'perm' ? ['縮毛矯正 ＋ パーマ — 高リスク'] : []),
+          ...(permCount >= 5 ? ['5回以上のパーマ履歴 — 構造的な懸念'] : []),
+          ...(hasBlackDye ? ['黒染め履歴 — ムラの原因になる可能性'] : []),
         ],
         warnings: [
           ...(hasStraightening && targetTreatment === 'perm'
-            ? ['CRITICAL: Straightened hair + perm is extremely high risk. Recommend strand test before proceeding.']
+            ? ['警告: 縮毛矯正毛へのパーマは非常に高リスクです。事前のストランドテストを強く推奨します。']
             : []),
         ],
         pre_treatments: [
-          ...(damageLevel >= 3 ? ['CMC (Ceramide) pre-treatment'] : []),
-          ...(damageLevel >= 2 ? ['OLAPLEX No.0 or equivalent bond reinforcement (5 min)'] : []),
+          ...(damageLevel >= 3 ? ['CMC (Ceramide) 前処理'] : []),
+          ...(damageLevel >= 2 ? ['OLAPLEX No.0 or equivalent bond reinforcement (5分放置)'] : []),
         ],
         post_treatments: [
-          'pH-balancing acid rinse',
-          'Moisturizing treatment mask — 5-10 min',
-          ...(damageLevel >= 2 ? ['OLAPLEX No.2 Bond Perfector — 10 min after rinse'] : []),
+          'pH調整用酸リンス',
+          '保湿トリートメントマスク — 5-10分放置',
+          ...(damageLevel >= 2 ? ['OLAPLEX No.2 Bond Perfector — 流し後に10分放置'] : []),
         ],
         alkaline_acidic_ratio: {
           alkaline_percent: damageLevel >= 4 ? 20 : damageLevel >= 3 ? 40 : 60,
@@ -135,6 +135,35 @@ export default function ChemicalCalculatorPage() {
         },
         created_at: new Date().toISOString(),
       };
+
+      // Phase 2: Apply Inventory Matching
+      const inventoryStr = localStorage.getItem('stylist_inventory');
+      if (inventoryStr) {
+        try {
+          const inventory: { brand_name: string; product_line: string; is_available: boolean }[] = JSON.parse(inventoryStr);
+          mockResult.recommended_agents.forEach(rec => {
+            const agentType = rec.agent.type;
+            
+            // Basic matching rule
+            for (const item of inventory) {
+              if (!item.is_available) continue;
+              const brand = item.brand_name.toUpperCase();
+              
+              if (agentType === 'treatment' && brand.includes('OLAPLEX')) {
+                rec.agent.name = `[${item.brand_name} ${item.product_line}] ${rec.agent.name}`;
+                break;
+              }
+              if (agentType === 'alkaline' && ['WELLA', 'ARIMINO', 'MILBON'].includes(brand)) {
+                rec.agent.name = `[${item.brand_name} ${item.product_line}] ${rec.agent.name}`;
+                break;
+              }
+            }
+          });
+        } catch (e) {
+          console.error('Failed to parse inventory', e);
+        }
+      }
+
       setResult(mockResult);
       setIsCalculating(false);
     }, 1500);
@@ -489,6 +518,57 @@ export default function ChemicalCalculatorPage() {
                     ))}
                   </div>
                 </div>
+
+                {/* Estimated Cost */}
+                {(() => {
+                  const inventoryStr = localStorage.getItem('stylist_inventory');
+                  let inventoryItems: { brand_name: string; product_line: string; price_per_gram: number; is_available: boolean }[] = [];
+                  try { if (inventoryStr) inventoryItems = JSON.parse(inventoryStr); } catch {}
+                  
+                  const defaultPrices: Record<string, number> = { 'alkaline': 10, 'acidic': 8, 'developer': 2, 'treatment': 30, 'bleach': 15, 'neutral': 12 };
+                  const defaultAmounts: Record<string, number> = { 'alkaline': 40, 'acidic': 40, 'developer': 60, 'treatment': 15, 'bleach': 50, 'neutral': 40 };
+                  
+                  let totalCost = 0;
+                  const costItems = result.recommended_agents.map(entry => {
+                    const t = entry.agent.type || 'alkaline';
+                    const amount = defaultAmounts[t] || 30;
+                    
+                    let price = defaultPrices[t] || 10;
+                    for (const inv of inventoryItems) {
+                      if (inv.is_available && entry.agent.name.includes(inv.brand_name)) {
+                        price = inv.price_per_gram || price;
+                        break;
+                      }
+                    }
+                    
+                    const subtotal = amount * price;
+                    totalCost += subtotal;
+                    return { name: entry.agent.name, amount, price, subtotal };
+                  });
+
+                  return (
+                    <div className="glass-card-static animate-fade-in-up" style={{ animationDelay: '250ms' }}>
+                      <h3 style={{ fontSize: 'var(--font-size-md)', fontWeight: 700, marginBottom: 'var(--space-md)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        💰 薬剤原価見積もり
+                      </h3>
+                      <div className="flex flex-col gap-xs" style={{ marginBottom: 'var(--space-md)' }}>
+                        {costItems.map((item, i) => (
+                          <div key={i} className="flex justify-between text-xs" style={{ padding: '0.3rem 0', borderBottom: '1px solid var(--border-subtle)' }}>
+                            <span className="text-secondary" style={{ maxWidth: '55%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</span>
+                            <span className="text-secondary">{item.amount}g × ¥{item.price}/g</span>
+                            <span className="font-semibold">¥{item.subtotal.toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex justify-between items-center" style={{ paddingTop: 'var(--space-sm)', borderTop: '2px solid var(--border-default)' }}>
+                        <span className="font-bold">合計原価</span>
+                        <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, color: 'var(--color-primary-light)' }}>
+                          ¥{totalCost.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Pre/Post Treatments */}
                 <div className="glass-card-static animate-fade-in-up" style={{ animationDelay: '300ms' }}>

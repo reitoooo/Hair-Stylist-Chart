@@ -69,6 +69,8 @@ class QuestionnaireCreate(BaseModel):
     perm_feasibility_notes: str = Field(default="", description="Notes about perm feasibility")
     black_dye_count: int = Field(default=0, ge=0, le=20, description="Total black dye treatments")
     salon_vibe: str = Field(default="気にしない・美容師におまかせ", description="Preferences for how to spend time at the salon")
+    hair_type: str = Field(default="normal", description="Hair type: soft, normal, hard")
+    wants_design_color: bool = Field(default=False, description="Whether the user wants design color like highlights or inner color")
 
 
 class QuestionnaireResponse(QuestionnaireCreate):
@@ -104,6 +106,9 @@ class StylistProfileCreate(BaseModel):
     years_experience: int = 0
     location: str = ""
     portfolio_urls: list[str] = []
+    base_price: int = 0
+    salon_atmosphere: str = ""
+    customer_service_style: str = ""
 
 
 class StylistProfileUpdate(BaseModel):
@@ -113,6 +118,9 @@ class StylistProfileUpdate(BaseModel):
     years_experience: int | None = None
     location: str | None = None
     portfolio_urls: list[str] | None = None
+    base_price: int | None = None
+    salon_atmosphere: str | None = None
+    customer_service_style: str | None = None
 
 
 class StylistProfileResponse(StylistProfileCreate):
@@ -213,6 +221,7 @@ class MatchedStylist(BaseModel):
 # ──────────────────────────────────────────────
 
 class ChemicalCalculationRequest(BaseModel):
+    stylist_id: str | None = None
     damage_level: int = Field(ge=1, le=5, description="Hair damage level 1-5")
     bleach_count: int = Field(ge=0, le=10, description="Number of bleach treatments")
     target_treatment: str = Field(description="Treatment type: color, bleach, perm, straightening")
@@ -222,6 +231,8 @@ class ChemicalCalculationRequest(BaseModel):
     has_black_dye: bool = False
     hair_length: str = "medium"
     perm_count: int = Field(default=0, ge=0, description="Number of perm treatments")
+    hair_type: str = "normal"
+    wants_design_color: bool = False
 
 
 class ChemicalCalculationResponse(BaseModel):
@@ -248,6 +259,7 @@ class SOAPChartCreate(BaseModel):
     objective: str = ""
     assessment: str = ""
     plan: str = ""
+    ai_analysis: dict | None = None
 
 
 class SOAPChartUpdate(BaseModel):
@@ -255,6 +267,7 @@ class SOAPChartUpdate(BaseModel):
     objective: str | None = None
     assessment: str | None = None
     plan: str | None = None
+    ai_analysis: dict | None = None
 
 
 class SOAPChartResponse(BaseModel):
@@ -266,8 +279,27 @@ class SOAPChartResponse(BaseModel):
     assessment: str
     plan: str
     is_ai_generated: bool = False
+    ai_analysis: dict | None = None
     created_at: datetime | str
     updated_at: datetime | str
+
+# ──────────────────────────────────────────────
+# Medical Records (Feature 8)
+# ──────────────────────────────────────────────
+
+class MedicalRecordCreate(BaseModel):
+    booking_id: str
+    stylist_id: str
+    user_id: str
+    actual_recipe: str = ""
+    before_image_urls: list[str] = []
+    after_image_urls: list[str] = []
+    private_notes: str = ""
+
+
+class MedicalRecordResponse(MedicalRecordCreate):
+    id: str
+    created_at: datetime | str
 
 
 # ──────────────────────────────────────────────
@@ -292,3 +324,21 @@ class AllergyChecklistResponse(AllergyChecklistCreate):
     id: str
     user_id: str
     created_at: datetime
+
+
+# ──────────────────────────────────────────────
+# Stylist Inventory (Phase 2)
+# ──────────────────────────────────────────────
+
+class InventoryItem(BaseModel):
+    brand_name: str
+    product_line: str
+    is_available: bool = True
+
+class StylistInventoryUpdate(BaseModel):
+    items: list[InventoryItem] = []
+
+class StylistInventoryResponse(StylistInventoryUpdate):
+    stylist_id: str
+    updated_at: datetime | str
+

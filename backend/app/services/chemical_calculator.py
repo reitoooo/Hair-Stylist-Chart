@@ -167,6 +167,9 @@ def calculate_formulation(
     has_black_dye: bool = False,
     hair_length: str = "medium",
     perm_count: int = 0,
+    hair_type: str = "normal",
+    wants_design_color: bool = False,
+    stylist_inventory: list[dict] | None = None,
 ) -> dict:
     """
     Calculate the optimal chemical formulation based on hair condition.
@@ -214,6 +217,18 @@ def calculate_formulation(
     if perm_count >= 5:
         risk_score += 2
         risk_factors.append("5+ perm treatments — hair structure may be significantly weakened")
+
+    if hair_type == "hard":
+        risk_score += 0.5
+        risk_factors.append("Hard hair (硬毛) — may require stronger agents or longer processing time")
+    elif hair_type == "soft":
+        risk_score += 1.0
+        risk_factors.append("Soft hair (軟毛) — highly susceptible to damage, requires careful processing")
+
+    if wants_design_color:
+        risk_score += 1.5
+        risk_factors.append("Design color requested — involves complex sectioning or partial bleaching")
+        pre_treatments.append("Sectioning/Foil work preparation for design color")
 
     # ─── Treatment-Specific Formulation ───
     if target_treatment == "color":
@@ -334,9 +349,14 @@ def calculate_formulation(
     post_treatments.append("pH-balancing acid rinse to close cuticles")
     post_treatments.append("Moisturizing treatment mask — 5-10 min")
 
-    # ─── Hair Length Time Adjustment ───
+    # ─── Hair Length & Type Time Adjustment ───
     length_multiplier = {"short": 0.7, "bob": 0.85, "medium": 1.0, "long": 1.2, "very_long": 1.4}
-    processing_time = int(processing_time * length_multiplier.get(hair_length, 1.0))
+    type_multiplier = {"soft": 0.85, "normal": 1.0, "hard": 1.2}
+    
+    processing_time = int(processing_time * length_multiplier.get(hair_length, 1.0) * type_multiplier.get(hair_type, 1.0))
+    
+    if wants_design_color:
+        processing_time += 30  # Additional time for foil/section work
 
     # ─── Alkaline/Acidic Ratio ───
     alkaline_count = sum(1 for a in recommended_agents if a["agent"].get("type") in ("alkaline", "bleach"))
@@ -347,6 +367,25 @@ def calculate_formulation(
 
     # Cap risk score
     risk_score = round(min(risk_score, 10), 1)
+
+    # ─── Inventory Matching (Phase 2) ───
+    if stylist_inventory:
+        for rec in recommended_agents:
+            agent_type = rec["agent"].get("type")
+            for item in stylist_inventory:
+                if not item.get("is_available"):
+                    continue
+                brand_name = item.get("brand_name", "")
+                product_line = item.get("product_line", "")
+                
+                # Simple heuristic matching for MVP
+                if agent_type == "treatment" and "OLAPLEX" in brand_name.upper():
+                    rec["agent"]["name"] = f"[{brand_name} {product_line}] {rec['agent']['name']}"
+                    break
+                
+                if agent_type == "alkaline" and brand_name.upper() in ["WELLA", "ARIMINO", "MILBON"]:
+                    rec["agent"]["name"] = f"[{brand_name} {product_line}] {rec['agent']['name']}"
+                    break
 
     return {
         "id": str(uuid.uuid4()),
