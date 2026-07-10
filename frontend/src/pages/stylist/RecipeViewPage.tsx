@@ -573,12 +573,10 @@ export default function RecipeViewPage() {
                     <FileText size={48} style={{ opacity: 0.2, marginBottom: 'var(--space-md)' }} />
                     <p style={{ marginBottom: 'var(--space-md)' }}>施術後の最終カルテがまだ登録されていません</p>
                     <button className="btn btn-primary" onClick={() => {
-                      if (!medicalRecord?.actual_recipe) {
-                        setRecordEditForm(prev => ({
-                          ...prev,
-                          actual_recipe: recipe.recommended_products.map(p => `${p.name} (${p.usage})`).join('\n')
-                        }));
-                      }
+                      setRecordEditForm(prev => ({
+                        ...prev,
+                        actual_recipe: recipe.recommended_products.map(p => `${p.name} (${p.usage})`).join('\n')
+                      }));
                       setIsEditingRecord(true);
                     }}>
                       <Sparkles size={16} /> 最終カルテを作成する
@@ -666,7 +664,7 @@ export default function RecipeViewPage() {
                           <div>
                             <div className="text-xs font-semibold text-secondary mb-xs">Before</div>
                             <div className="flex flex-wrap gap-sm">
-                              {(isEditingRecord ? recordEditForm.before_image_urls : medicalRecord?.before_image_urls)?.map((url, i) => (
+                              {(isEditingRecord ? recordEditForm.before_image_urls : medicalRecord?.before_image_urls)?.map((_, i) => (
                                 <div key={i} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', backgroundColor: '#e2e8f0' }}>
                                   <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
                                     <ImageIcon size={24} />
@@ -698,7 +696,7 @@ export default function RecipeViewPage() {
                           <div>
                             <div className="text-xs font-semibold text-secondary mb-xs">After</div>
                             <div className="flex flex-wrap gap-sm">
-                              {(isEditingRecord ? recordEditForm.after_image_urls : medicalRecord?.after_image_urls)?.map((url, i) => (
+                              {(isEditingRecord ? recordEditForm.after_image_urls : medicalRecord?.after_image_urls)?.map((_, i) => (
                                 <div key={i} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', backgroundColor: '#e2e8f0' }}>
                                   <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
                                     <ImageIcon size={24} />

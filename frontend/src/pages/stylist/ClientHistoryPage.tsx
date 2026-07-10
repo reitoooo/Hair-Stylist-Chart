@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Calendar, Sparkles, AlertTriangle, FileSignature, ChevronDown, ChevronUp, Package, Image as ImageIcon, Lock, Banknote, Shield, Beaker, Clock, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, Calendar, Sparkles, AlertTriangle, FileSignature, ChevronDown, ChevronUp, Package, Image as ImageIcon, Lock, Shield, Beaker, Clock, CheckCircle2 } from 'lucide-react';
 
 // モックデータ：顧客の基本情報
 const DEMO_CLIENT = {
