@@ -16,14 +16,6 @@ const BASE_STYLES = [
   { id: 'long', name: 'ロング' },
 ];
 
-const HAIR_COLORS = [
-  { id: 'ash', name: 'アッシュグレー', hex: '#8C92AC', requiresBleach: true },
-  { id: 'beige', name: 'ミルクティー', hex: '#D4B895', requiresBleach: true },
-  { id: 'pink', name: 'ピンクブラウン', hex: '#D98C9B', requiresBleach: false },
-  { id: 'brown', name: 'ナチュラル茶', hex: '#6B4423', requiresBleach: false },
-  { id: 'black', name: 'ブルーブラック', hex: '#1C2331', requiresBleach: false },
-];
-
 const PERM_STYLES = [
   { id: 'none', name: 'なし', icon: '—', intensity: 0, gender: ['ladies', 'mens'] as Gender[] },
   { id: 'loose_wave', name: 'ゆるふわウェーブ', icon: '〰', intensity: 1, gender: ['ladies'] as Gender[] },
@@ -46,7 +38,7 @@ export default function SuggestStylePage() {
 
   // Simulator state
   const [selectedStyle, setSelectedStyle] = useState('medium');
-  const [selectedColor, setSelectedColor] = useState('beige');
+  const [selectedColor, setSelectedColor] = useState('#d4b895'); // default milk tea
   const [selectedPerm, setSelectedPerm] = useState('none');
   const [genderFilter, setGenderFilter] = useState<Gender>('ladies');
   const [showWarning, setShowWarning] = useState(false);
@@ -105,14 +97,24 @@ export default function SuggestStylePage() {
       if (parsed.hair_length && BASE_STYLES.some(s => s.id === parsed.hair_length)) {
         setSelectedStyle(parsed.hair_length);
       }
+      if (parsed.target_color) {
+        setSelectedColor(parsed.target_color);
+      }
     }
   }, []);
 
-  // Check feasibility when color changes
+  // Update checkWarning to work with hex colors
   useEffect(() => {
-    const colorDef = HAIR_COLORS.find(c => c.id === selectedColor);
-    if (qData && colorDef) {
-      if (colorDef.requiresBleach && qData.has_black_dye) {
+    if (qData) {
+      const r = parseInt(selectedColor.slice(1, 3), 16) / 255;
+      const g = parseInt(selectedColor.slice(3, 5), 16) / 255;
+      const b = parseInt(selectedColor.slice(5, 7), 16) / 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      const l = (max + min) / 2;
+      const s = max === min ? 0 : l > 0.5 ? (max - min) / (2 - max - min) : (max - min) / (max + min);
+      const requiresBleach = l > 0.55 || (s > 0.5 && l > 0.35);
+
+      if (requiresBleach && qData.has_black_dye) {
         setShowWarning(true);
       } else {
         setShowWarning(false);
@@ -132,7 +134,7 @@ export default function SuggestStylePage() {
       } else if (qData.perm_count_over_5) {
         setPermWarning('パーマ5回以上の履歴があるため、髪の強度に注意が必要です。低ダメージのパーマ液をおすすめします。');
       } else if (qData.damage_level >= 4) {
-        setPermWarning('ダメージレベルが高いため、パーマの施術は慎重に行う必要があります。');
+        setPermWarning('ダメージレベルが高いため、パーマ的施術は慎重に行う必要があります。');
       } else {
         setPermWarning('');
       }
@@ -213,18 +215,25 @@ export default function SuggestStylePage() {
 
   const handleComplete = () => {
     const styleName = BASE_STYLES.find(s => s.id === selectedStyle)?.name;
-    const colorName = HAIR_COLORS.find(c => c.id === selectedColor)?.name;
-    const colorHex = HAIR_COLORS.find(c => c.id === selectedColor)?.hex;
     const permName = PERM_STYLES.find(p => p.id === selectedPerm)?.name;
+
+    localStorage.setItem(
+      'simulator_result',
+      JSON.stringify({
+        style: selectedStyle,
+        color: selectedColor,
+        perm: selectedPerm,
+      })
+    );
 
     localStorage.setItem(
       'desiredStyle',
       JSON.stringify({
         id: `style-ai-${Date.now()}`,
         image_url: faceImage || '',
-        description: `【AIシミュレーション結果】${styleName} × ${colorName}${selectedPerm !== 'none' ? ` × ${permName}` : ''}`,
+        description: `【AIシミュレーション結果】${styleName} × カラー: ${selectedColor}${selectedPerm !== 'none' ? ` × ${permName}` : ''}`,
         is_ai_suggested: true,
-        color_hex: colorHex,
+        color_hex: selectedColor,
         perm_type: selectedPerm,
         refined_details: refinedDetails,
         chat_history: chatMessages
@@ -459,7 +468,7 @@ export default function SuggestStylePage() {
                   style={{
                     position: 'absolute',
                     top: 0, left: 0, right: 0, bottom: '30%',
-                    background: HAIR_COLORS.find(c => c.id === selectedColor)?.hex,
+                    background: selectedColor,
                     mixBlendMode: 'color',
                     opacity: 0.6,
                     maskImage: 'radial-gradient(ellipse at top, black 40%, transparent 70%)',
@@ -473,7 +482,8 @@ export default function SuggestStylePage() {
 
                 {/* Style Indicator Overlay */}
                 <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', padding: '0.375rem 0.75rem', borderRadius: 'var(--radius-full)', color: 'white', fontSize: '0.7rem', fontWeight: 600, border: '1px solid rgba(255,255,255,0.1)' }}>
-                  {BASE_STYLES.find(s => s.id === selectedStyle)?.name} × {HAIR_COLORS.find(c => c.id === selectedColor)?.name}
+                  {BASE_STYLES.find(s => s.id === selectedStyle)?.name}
+                  <span style={{ display: 'inline-block', width: '10px', height: '10px', background: selectedColor, borderRadius: '50%', margin: '0 4px', border: '1px solid rgba(255,255,255,0.5)' }} />
                   {selectedPerm !== 'none' && ` × ${PERM_STYLES.find(p => p.id === selectedPerm)?.name}`}
                 </div>
 
@@ -523,7 +533,7 @@ export default function SuggestStylePage() {
                     髪色
                   </div>
                   <div className="flex gap-md overflow-x-auto hide-scrollbar">
-                    {HAIR_COLORS.map(color => (
+                    {HAIR_COLOR_PALETTE.map(color => (
                       <button
                         key={color.id}
                         onClick={() => setSelectedColor(color.id)}

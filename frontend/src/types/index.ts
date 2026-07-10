@@ -30,13 +30,14 @@ export interface Profile {
 
 export interface QuestionnaireData {
   hair_length: HairLength;
+  has_bleach: 'yes' | 'no' | 'unknown';
   bleach_count: number;
-  has_black_dye: boolean;
-  has_straightening: boolean;
-  has_perm: boolean;
+  has_black_dye: 'yes' | 'no' | 'unknown';
+  has_straightening: 'yes' | 'no' | 'unknown';
+  has_perm: 'yes' | 'no' | 'unknown';
   current_hair_color: string;
   damage_level: number;
-  additional_notes: string;
+  additional_notes?: string;
   // Expanded fields
   straightening_date: string;
   straightening_count: number;
@@ -46,9 +47,11 @@ export interface QuestionnaireData {
   previous_chemicals: string;
   perm_feasibility_notes: string;
   black_dye_count: number;
+  black_dye_date: string;
   salon_vibe: string;
   hair_type: 'soft' | 'normal' | 'hard';
   wants_design_color: boolean;
+  target_color: string;
 }
 
 export interface Questionnaire extends QuestionnaireData {
@@ -333,9 +336,11 @@ export const HAIR_LENGTH_LABELS: Record<HairLength, string> = {
   medium: 'ミディアム',
   long: 'ロング',
   very_long: 'スーパーロング',
+  unknown: 'わからない',
 };
 
 export const DAMAGE_LEVEL_LABELS: Record<number, string> = {
+  0: 'わからない',
   1: 'ほぼダメージなし',
   2: '軽いダメージ',
   3: '中程度のダメージ',
@@ -368,11 +373,55 @@ export const PERM_DATE_OPTIONS = [
   { value: 'over1year', label: '1年以上前' },
 ];
 
+export const BLACK_DYE_DATE_OPTIONS = [
+  { value: '', label: '選択してください' },
+  { value: '1month', label: '1ヶ月以内' },
+  { value: '3months', label: '3ヶ月以内' },
+  { value: '6months', label: '半年以内' },
+  { value: '1year', label: '1年以内' },
+  { value: 'over1year', label: '1年以上前' },
+];
+
 export const SALON_VIBE_OPTIONS = [
   { value: '気にしない・美容師におまかせ', label: '気にしない・美容師におまかせ', icon: '🍃' },
   { value: '静かに過ごしたい', label: '静かに過ごしたい（雑誌やスマホを見たい・ゆっくり休みたい）', icon: '🎧' },
   { value: '髪の悩みやお手入れについてだけ話したい', label: '髪の悩みやお手入れについてだけ話したい', icon: '💇‍♀️' },
   { value: '楽しく会話したい', label: '楽しく会話したい', icon: '🗣️' },
+];
+
+export interface HairColorDef {
+  id: string;
+  name: string;
+  hex: string;
+  category: 'high_tone' | 'mid_tone' | 'dark_tone';
+  requiresBleach: boolean;
+  minBleachCount: number;
+}
+
+export const HAIR_COLOR_PALETTE: HairColorDef[] = [
+  // High Tone (Requires Bleach)
+  { id: 'white_blonde', name: 'ホワイトブロンド', hex: '#F0E6D2', category: 'high_tone', requiresBleach: true, minBleachCount: 2 },
+  { id: 'silver_ash', name: 'シルバーアッシュ', hex: '#C0C4C9', category: 'high_tone', requiresBleach: true, minBleachCount: 2 },
+  { id: 'milk_tea', name: 'ミルクティーベージュ', hex: '#D4B895', category: 'high_tone', requiresBleach: true, minBleachCount: 1 },
+  { id: 'pink_beige', name: 'ピンクベージュ', hex: '#E6B3B3', category: 'high_tone', requiresBleach: true, minBleachCount: 1 },
+  { id: 'ash_gray', name: 'ハイトーンアッシュ', hex: '#9BA3B5', category: 'high_tone', requiresBleach: true, minBleachCount: 1 },
+  
+  // Mid Tone
+  { id: 'greige', name: 'グレージュ', hex: '#A9A59F', category: 'mid_tone', requiresBleach: true, minBleachCount: 1 },
+  { id: 'apricot', name: 'アプリコットオレンジ', hex: '#F3B08C', category: 'mid_tone', requiresBleach: true, minBleachCount: 1 },
+  { id: 'pink_brown', name: 'ピンクブラウン', hex: '#D98C9B', category: 'mid_tone', requiresBleach: false, minBleachCount: 0 },
+  { id: 'red_brown', name: 'レッドブラウン', hex: '#8B3A3A', category: 'mid_tone', requiresBleach: false, minBleachCount: 0 },
+  { id: 'olive_ash', name: 'オリーブアッシュ', hex: '#7a8b75', category: 'mid_tone', requiresBleach: false, minBleachCount: 0 },
+  { id: 'khaki_beige', name: 'カーキベージュ', hex: '#8F9779', category: 'mid_tone', requiresBleach: false, minBleachCount: 0 },
+  { id: 'lavender_ash', name: 'ラベンダーアッシュ', hex: '#A291A8', category: 'mid_tone', requiresBleach: false, minBleachCount: 0 },
+  { id: 'chocolate', name: 'ショコラブラウン', hex: '#5D4037', category: 'mid_tone', requiresBleach: false, minBleachCount: 0 },
+
+  // Dark Tone
+  { id: 'natural_brown', name: 'ナチュラルブラウン', hex: '#6B4423', category: 'dark_tone', requiresBleach: false, minBleachCount: 0 },
+  { id: 'dark_greige', name: 'ダークグレージュ', hex: '#5C5A57', category: 'dark_tone', requiresBleach: false, minBleachCount: 0 },
+  { id: 'cherry_red', name: 'チェリーレッド', hex: '#6B2737', category: 'dark_tone', requiresBleach: false, minBleachCount: 0 },
+  { id: 'blue_black', name: 'ブルーブラック', hex: '#1C2331', category: 'dark_tone', requiresBleach: false, minBleachCount: 0 },
+  { id: 'black', name: '地毛/黒髪', hex: '#111111', category: 'dark_tone', requiresBleach: false, minBleachCount: 0 },
 ];
 
 // ──────────────────────────────────────────────
