@@ -34,6 +34,14 @@ const PRESET_COLORS = [
   '#b71c1c', '#880e4f', '#4a148c', '#311b92', '#1a237e', '#0d47a1', '#01579b', '#006064', '#004d40', '#1b5e20', '#33691e', '#827717', '#f57f17', '#ff6f00', '#e65100', '#bf360c', '#3e2723', '#212121',
 ];
 
+const COLOR_DESIGN_TYPES = [
+  { id: 'solid', name: '単色 (全体)' },
+  { id: 'highlight', name: 'ハイライト' },
+  { id: 'inner', name: 'インナーカラー' },
+  { id: 'gradation', name: 'グラデーション' },
+  { id: 'balayage', name: 'バレイヤージュ' },
+];
+
 export default function SuggestStylePage() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('upload');
@@ -46,7 +54,9 @@ export default function SuggestStylePage() {
 
   // Simulator state
   const [selectedStyle, setSelectedStyle] = useState<string>(BASE_STYLES[0].id);
+  const [selectedDesignType, setSelectedDesignType] = useState<string>('solid');
   const [selectedColor, setSelectedColor] = useState<string>('#d7ccc8'); // Default to a light brown
+  const [selectedAccentColor, setSelectedAccentColor] = useState<string>('#f44336'); // Default accent
   const [selectedPerm, setSelectedPerm] = useState<string>('none');
   const [genderFilter, setGenderFilter] = useState<Gender>('ladies');
   const [showWarning, setShowWarning] = useState(false);
@@ -61,7 +71,7 @@ export default function SuggestStylePage() {
       setRegeneratingImage(false);
     }, 1000);
     return () => clearTimeout(timer);
-  }, [selectedStyle, selectedColor, selectedPerm]);
+  }, [selectedStyle, selectedColor, selectedDesignType, selectedAccentColor, selectedPerm]);
 
   // AI Suggestion Chat State
   const [chatContext, setChatContext] = useState<ChatContext>(createInitialContext());
@@ -198,6 +208,8 @@ export default function SuggestStylePage() {
       // Apply style/color/perm changes from AI
       if (response.styleChange) setSelectedStyle(response.styleChange);
       if (response.colorChange) setSelectedColor(response.colorChange);
+      if (response.designTypeChange) setSelectedDesignType(response.designTypeChange);
+      if (response.accentColorChange) setSelectedAccentColor(response.accentColorChange);
       if (response.permChange) setSelectedPerm(response.permChange);
 
       // Add tags
@@ -208,6 +220,8 @@ export default function SuggestStylePage() {
         ...prev,
         currentStyle: response.styleChange || prev.currentStyle,
         currentColor: response.colorChange || prev.currentColor,
+        currentDesignType: response.designTypeChange || prev.currentDesignType,
+        currentAccentColor: response.accentColorChange || prev.currentAccentColor,
         currentPerm: response.permChange || prev.currentPerm,
       }));
 
@@ -234,12 +248,15 @@ export default function SuggestStylePage() {
   const handleComplete = () => {
     const styleName = BASE_STYLES.find(s => s.id === selectedStyle)?.name;
     const permName = PERM_STYLES.find(p => p.id === selectedPerm)?.name;
+    const designTypeName = COLOR_DESIGN_TYPES.find(d => d.id === selectedDesignType)?.name || '単色';
 
     localStorage.setItem(
       'simulator_result',
       JSON.stringify({
         style: selectedStyle,
         color: selectedColor,
+        designType: selectedDesignType,
+        accentColor: selectedDesignType !== 'solid' ? selectedAccentColor : null,
         perm: selectedPerm,
       })
     );
@@ -249,9 +266,11 @@ export default function SuggestStylePage() {
       JSON.stringify({
         id: `style-ai-${Date.now()}`,
         image_url: faceImage || '',
-        description: `【AIシミュレーション結果】${styleName} × カラー: ${selectedColor}${selectedPerm !== 'none' ? ` × ${permName}` : ''}`,
+        description: `【AIシミュレーション結果】${styleName} × ${designTypeName} (ベース: ${selectedColor}${selectedDesignType !== 'solid' ? `, 差し色: ${selectedAccentColor}` : ''})${selectedPerm !== 'none' ? ` × ${permName}` : ''}`,
         is_ai_suggested: true,
         color_hex: selectedColor,
+        design_type: selectedDesignType,
+        accent_color_hex: selectedDesignType !== 'solid' ? selectedAccentColor : null,
         perm_type: selectedPerm,
         refined_details: refinedDetails,
         chat_history: chatMessages
@@ -486,7 +505,9 @@ export default function SuggestStylePage() {
                   style={{
                     position: 'absolute',
                     top: 0, left: 0, right: 0, bottom: '30%',
-                    background: selectedColor,
+                    background: selectedDesignType === 'solid' || !selectedAccentColor 
+                      ? selectedColor 
+                      : `linear-gradient(180deg, ${selectedColor} 40%, ${selectedAccentColor} 90%)`,
                     mixBlendMode: 'color',
                     opacity: 0.6,
                     maskImage: 'radial-gradient(ellipse at top, black 40%, transparent 70%)',
@@ -499,9 +520,19 @@ export default function SuggestStylePage() {
                 {selectedPerm !== 'none' && <div style={getPermOverlayStyle()} />}
 
                 {/* Style Indicator Overlay */}
-                <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', padding: '0.375rem 0.75rem', borderRadius: 'var(--radius-full)', color: 'white', fontSize: '0.7rem', fontWeight: 600, border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', padding: '0.375rem 0.75rem', borderRadius: 'var(--radius-full)', color: 'white', fontSize: '0.7rem', fontWeight: 600, border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   {BASE_STYLES.find(s => s.id === selectedStyle)?.name}
-                  <span style={{ display: 'inline-block', width: '10px', height: '10px', background: selectedColor, borderRadius: '50%', margin: '0 4px', border: '1px solid rgba(255,255,255,0.5)' }} />
+                  <div style={{ display: 'flex', margin: '0 2px', border: '1px solid rgba(255,255,255,0.5)', borderRadius: '50%', overflow: 'hidden', width: '12px', height: '12px' }}>
+                     {selectedDesignType === 'solid' ? (
+                        <div style={{ width: '100%', height: '100%', background: selectedColor }} />
+                     ) : (
+                        <>
+                          <div style={{ width: '50%', height: '100%', background: selectedColor }} />
+                          <div style={{ width: '50%', height: '100%', background: selectedAccentColor }} />
+                        </>
+                     )}
+                  </div>
+                  {COLOR_DESIGN_TYPES.find(d => d.id === selectedDesignType)?.name}
                   {selectedPerm !== 'none' && ` × ${PERM_STYLES.find(p => p.id === selectedPerm)?.name}`}
                 </div>
 
@@ -544,16 +575,36 @@ export default function SuggestStylePage() {
                   </div>
                 </div>
 
-                {/* Color Selector */}
+                {/* Color Design Selector */}
                 <div style={{ marginBottom: 'var(--space-sm)' }}>
                   <div className="flex items-center gap-sm text-sm text-secondary" style={{ marginBottom: 'var(--space-xs)', fontWeight: 600, fontSize: '0.75rem' }}>
                     <Sparkles size={12} />
-                    髪色
+                    カラーデザイン
+                  </div>
+                  <div className="flex gap-xs hide-scrollbar" style={{ overflowX: 'auto', width: '100%', paddingBottom: '4px' }}>
+                    {COLOR_DESIGN_TYPES.map(design => (
+                      <button
+                        key={design.id}
+                        className={`btn ${selectedDesignType === design.id ? 'btn-primary' : 'btn-secondary'} btn-sm`}
+                        onClick={() => setSelectedDesignType(design.id)}
+                        style={{ flexShrink: 0, borderRadius: 'var(--radius-full)', fontSize: '0.7rem', padding: '0.375rem 0.75rem' }}
+                      >
+                        {design.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Base Color Selector */}
+                <div style={{ marginBottom: 'var(--space-sm)' }}>
+                  <div className="flex items-center gap-sm text-sm text-secondary" style={{ marginBottom: 'var(--space-xs)', fontWeight: 600, fontSize: '0.75rem' }}>
+                    <Sparkles size={12} />
+                    ベースカラー
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(18, 1fr)', gap: '2px', overflowX: 'auto', width: '100%', padding: '8px 0', margin: '-8px 0' }}>
                     {PRESET_COLORS.map(color => (
                       <button
-                        key={color}
+                        key={`base-${color}`}
                         onClick={() => setSelectedColor(color)}
                         style={{
                           width: '100%',
@@ -573,6 +624,38 @@ export default function SuggestStylePage() {
                     ))}
                   </div>
                 </div>
+
+                {/* Accent Color Selector (Only if not solid) */}
+                {selectedDesignType !== 'solid' && (
+                  <div style={{ marginBottom: 'var(--space-sm)' }}>
+                    <div className="flex items-center gap-sm text-sm text-secondary" style={{ marginBottom: 'var(--space-xs)', fontWeight: 600, fontSize: '0.75rem' }}>
+                      <Sparkles size={12} />
+                      差し色 (アクセントカラー)
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(18, 1fr)', gap: '2px', overflowX: 'auto', width: '100%', padding: '8px 0', margin: '-8px 0' }}>
+                      {PRESET_COLORS.map(color => (
+                        <button
+                          key={`accent-${color}`}
+                          onClick={() => setSelectedAccentColor(color)}
+                          style={{
+                            width: '100%',
+                            aspectRatio: '1/1',
+                            minWidth: '14px',
+                            background: color,
+                            border: selectedAccentColor === color ? '2px solid white' : 'none',
+                            boxShadow: selectedAccentColor === color ? '0 0 0 2px var(--color-primary)' : 'none',
+                            borderRadius: '2px',
+                            cursor: 'pointer',
+                            padding: 0,
+                            transform: selectedAccentColor === color ? 'scale(1.2)' : 'scale(1)',
+                            zIndex: selectedAccentColor === color ? 10 : 1,
+                            position: 'relative'
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Perm Selector (NEW) */}
                 <div>

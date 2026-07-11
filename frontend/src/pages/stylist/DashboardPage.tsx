@@ -14,6 +14,10 @@ interface DemoBooking {
   created_at: string;
   refined_details?: string[];
   chat_history?: Array<{ sender: string; text: string; time: string }>;
+  image_url?: string;
+  design_type?: string;
+  color_hex?: string;
+  accent_color_hex?: string;
 }
 
 const DEMO_BOOKINGS: DemoBooking[] = [
@@ -25,6 +29,9 @@ const DEMO_BOOKINGS: DemoBooking[] = [
     hair_summary: 'ミディアム / ブリーチ2回 / ダメージLv3',
     desired_style: 'ミルクティーベージュのハイトーン',
     created_at: '2026-07-06T10:30:00',
+    image_url: 'https://images.unsplash.com/photo-1520625345719-58b292a83236?auto=format&fit=crop&q=80&w=300',
+    design_type: 'solid',
+    color_hex: '#d4b895',
   },
   {
     id: 'booking-002',
@@ -34,6 +41,10 @@ const DEMO_BOOKINGS: DemoBooking[] = [
     hair_summary: 'ロング / ブリーチ1回 / ダメージLv2',
     desired_style: 'アッシュグレーのバラヤージュ',
     created_at: '2026-07-06T09:15:00',
+    image_url: 'https://images.unsplash.com/photo-1512496229559-00222a00c14b?auto=format&fit=crop&q=80&w=300',
+    design_type: 'balayage',
+    color_hex: '#9575cd',
+    accent_color_hex: '#c5cae9',
   },
   {
     id: 'booking-003',
@@ -41,8 +52,12 @@ const DEMO_BOOKINGS: DemoBooking[] = [
     preferred_datetime: '2026-07-07T16:30:00',
     status: 'approved',
     hair_summary: 'ショート / ブリーチ3回 / ダメージLv4',
-    desired_style: 'ネイビーブルーのビビッドカラー',
+    desired_style: 'ネイビーブルーとインナーカラー',
     created_at: '2026-07-05T18:00:00',
+    image_url: 'https://images.unsplash.com/photo-1595475143003-8ad493e80cc0?auto=format&fit=crop&q=80&w=300',
+    design_type: 'inner',
+    color_hex: '#1C2331',
+    accent_color_hex: '#00bcd4',
   },
 ];
 
@@ -176,35 +191,67 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Hair summary */}
+              {/* Hair summary & Image */}
               <div
                 style={{
                   padding: 'var(--space-md)',
                   background: 'var(--bg-tertiary)',
                   borderRadius: 'var(--radius-md)',
                   marginBottom: 'var(--space-md)',
+                  display: 'flex',
+                  gap: 'var(--space-md)',
+                  alignItems: 'flex-start',
+                  flexWrap: 'wrap'
                 }}
               >
-                <div className="text-sm" style={{ marginBottom: 'var(--space-xs)' }}>
-                  <span className="text-secondary">髪の状態: </span>
-                  <span>{booking.hair_summary}</span>
-                </div>
-                <div className="text-sm">
-                  <span className="text-secondary">希望スタイル: </span>
-                  <span>{booking.desired_style}</span>
-                </div>
-                {booking.refined_details && booking.refined_details.length > 0 && (
-                  <div className="text-sm" style={{ marginTop: 'var(--space-xs)', borderTop: '1px solid var(--border-subtle)', paddingTop: 'var(--space-xs)' }}>
-                    <span className="text-secondary">こだわり条件 (AIチャット): </span>
-                    <div className="flex gap-xs flex-wrap" style={{ display: 'inline-flex', marginLeft: '6px', verticalAlign: 'middle' }}>
-                      {booking.refined_details.map((tag) => (
-                        <span key={tag} className="chip chip-pink" style={{ fontSize: '0.65rem', padding: '0.125rem 0.5rem', border: '1px solid rgba(236, 72, 153, 0.3)' }}>
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
+                {booking.image_url && (
+                  <div style={{ flexShrink: 0, width: '80px', height: '100px', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+                    <img src={booking.image_url} alt="Desired style" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                 )}
+                <div style={{ flex: 1, minWidth: '200px' }}>
+                  <div className="text-sm" style={{ marginBottom: 'var(--space-xs)' }}>
+                    <span className="text-secondary">髪の状態: </span>
+                    <span>{booking.hair_summary}</span>
+                  </div>
+                  <div className="text-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <span className="text-secondary">希望スタイル: </span>
+                    <span>{booking.desired_style}</span>
+                    {booking.color_hex && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '4px', background: 'var(--bg-elevated)', padding: '2px 6px', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-subtle)' }}>
+                        <div style={{ display: 'flex', borderRadius: '50%', overflow: 'hidden', width: '12px', height: '12px', border: '1px solid rgba(255,255,255,0.2)' }}>
+                           {booking.design_type === 'solid' || !booking.accent_color_hex ? (
+                              <div style={{ width: '100%', height: '100%', background: booking.color_hex }} />
+                           ) : (
+                              <>
+                                <div style={{ width: '50%', height: '100%', background: booking.color_hex }} />
+                                <div style={{ width: '50%', height: '100%', background: booking.accent_color_hex }} />
+                              </>
+                           )}
+                        </div>
+                        <span style={{ fontSize: '0.65rem' }}>
+                          {booking.design_type === 'solid' ? '単色' :
+                           booking.design_type === 'highlight' ? 'ハイライト' :
+                           booking.design_type === 'inner' ? 'インナー' :
+                           booking.design_type === 'gradation' ? 'グラデーション' :
+                           booking.design_type === 'balayage' ? 'バレイヤージュ' : booking.design_type}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  {booking.refined_details && booking.refined_details.length > 0 && (
+                    <div className="text-sm" style={{ marginTop: 'var(--space-xs)', borderTop: '1px solid var(--border-subtle)', paddingTop: 'var(--space-xs)' }}>
+                      <span className="text-secondary">こだわり条件 (AIチャット): </span>
+                      <div className="flex gap-xs flex-wrap" style={{ display: 'inline-flex', marginLeft: '6px', verticalAlign: 'middle' }}>
+                        {booking.refined_details.map((tag) => (
+                          <span key={tag} className="chip chip-pink" style={{ fontSize: '0.65rem', padding: '0.125rem 0.5rem', border: '1px solid rgba(236, 72, 153, 0.3)' }}>
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex gap-sm flex-wrap flex-mobile-col">

@@ -307,6 +307,9 @@ const DEMO_RECIPE = {
     damage_level: 3,
     desired_style: 'ミルクティーベージュのハイトーン',
     salon_vibe: '静かに過ごしたい',
+    image_url: 'https://images.unsplash.com/photo-1520625345719-58b292a83236?auto=format&fit=crop&q=80&w=300',
+    design_type: 'solid',
+    accent_color_hex: '',
   },
 };
 
@@ -408,8 +411,11 @@ export default function RecipeViewPage() {
           damage_level: q ? q.damage_level : (parseInt(parsed.hair_summary.split(' / ')[2]?.replace('ダメージLv', '')) || 3),
           desired_style: parsed.desired_style || 'ミルクティーベージュのハイトーン',
           salon_vibe: parsed.salon_vibe || '静かに過ごしたい',
-          target_color: q?.target_color || '#D4B895',
+          target_color: q?.target_color || parsed.color_hex || '#D4B895',
           hair_type: q?.hair_type || 'soft',
+          image_url: parsed.image_url || '',
+          design_type: parsed.design_type || 'solid',
+          accent_color_hex: parsed.accent_color_hex || '',
         };
 
         const dynamicDetails = calculateDynamicRecipe(customer);
@@ -907,6 +913,14 @@ const getRiskLabel = (score: number) => {
                 <User size={18} /> 顧客カルテ
               </h3>
               <div className="flex flex-col gap-sm" style={{ fontSize: 'var(--font-size-sm)' }}>
+                {(recipe.customer as any).image_url && (
+                  <div style={{ marginBottom: 'var(--space-sm)' }}>
+                    <span className="text-secondary block" style={{ marginBottom: '4px' }}>希望のイメージ画像</span>
+                    <div style={{ width: '100%', height: '160px', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+                      <img src={(recipe.customer as any).image_url} alt="Desired style" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  </div>
+                )}
                 <div className="flex justify-between border-b pb-xs border-subtle">
                   <span className="text-secondary">お名前</span><span className="font-semibold">{recipe.customer.name}</span>
                 </div>
@@ -915,11 +929,27 @@ const getRiskLabel = (score: number) => {
                 </div>
                 <div className="flex justify-between border-b pb-xs border-subtle">
                   <span className="text-secondary">希望のカラー</span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     {recipe.customer.target_color && recipe.customer.target_color !== 'consult' ? (
-                      recipe.customer.target_color.split(',').map((c: string, i: number) => (
-                        <div key={i} className="rounded-full border border-subtle shadow-sm" style={{ backgroundColor: c, width: '16px', height: '16px' }} title={c} />
-                      ))
+                      <div className="flex items-center gap-1">
+                        <div style={{ display: 'flex', borderRadius: '50%', overflow: 'hidden', width: '20px', height: '20px', border: '1px solid var(--border-subtle)' }}>
+                           {(recipe.customer as any).design_type === 'solid' || !(recipe.customer as any).accent_color_hex ? (
+                              <div style={{ width: '100%', height: '100%', background: recipe.customer.target_color.split(',')[0] }} />
+                           ) : (
+                              <>
+                                <div style={{ width: '50%', height: '100%', background: recipe.customer.target_color.split(',')[0] }} />
+                                <div style={{ width: '50%', height: '100%', background: (recipe.customer as any).accent_color_hex }} />
+                              </>
+                           )}
+                        </div>
+                        <span className="font-semibold" style={{ fontSize: '0.8rem' }}>
+                          {(recipe.customer as any).design_type === 'solid' ? '単色' :
+                           (recipe.customer as any).design_type === 'highlight' ? 'ハイライト' :
+                           (recipe.customer as any).design_type === 'inner' ? 'インナー' :
+                           (recipe.customer as any).design_type === 'gradation' ? 'グラデーション' :
+                           (recipe.customer as any).design_type === 'balayage' ? 'バレイヤージュ' : (recipe.customer as any).design_type}
+                        </span>
+                      </div>
                     ) : (
                       <span className="font-semibold text-secondary">未指定</span>
                     )}

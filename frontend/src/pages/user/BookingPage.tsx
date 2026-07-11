@@ -70,6 +70,10 @@ export default function BookingPage() {
       salon_vibe: qData?.salon_vibe || '気にしない・美容師におまかせ',
       refined_details: desiredStyle?.refined_details || [],
       chat_history: desiredStyle?.chat_history || [],
+      image_url: desiredStyle?.image_url || '',
+      design_type: desiredStyle?.design_type || 'solid',
+      color_hex: desiredStyle?.color_hex || '',
+      accent_color_hex: desiredStyle?.accent_color_hex || '',
       created_at: new Date().toISOString(),
       questionnaire: qData
     };
