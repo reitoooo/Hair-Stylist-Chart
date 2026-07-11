@@ -1522,7 +1522,7 @@ const getRiskLabel = (score: number) => {
             {!calcResult && !isCalculating && (
               <div className="glass-card-static flex flex-col items-center justify-center" style={{ flex: 1, textAlign: 'center', color: 'var(--text-muted)', minHeight: '400px' }}>
                 <Beaker size={48} style={{ opacity: 0.2, marginBottom: 'var(--space-md)' }} />
-                <p>左のフォームを入力して<br />「AI薬剤計算を実行」をクリック</p>
+                <p>フォームを入力して<br />「AI薬剤計算を実行」をクリック</p>
               </div>
             )}
 
