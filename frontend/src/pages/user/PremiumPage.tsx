@@ -5,10 +5,10 @@ import { useState } from 'react';
 export default function PremiumPage() {
   const navigate = useNavigate();
   const [successType, setSuccessType] = useState<'upgrade' | 'cancel' | null>(null);
-  const isPremiumUser = sessionStorage.getItem('isPremiumUser') === 'true';
+  const isPremiumUser = localStorage.getItem('isPremiumUser') === 'true';
 
   const handleUpgrade = () => {
-    sessionStorage.setItem('isPremiumUser', 'true');
+    localStorage.setItem('isPremiumUser', 'true');
     setSuccessType('upgrade');
     setTimeout(() => {
       navigate(-1);
@@ -16,7 +16,7 @@ export default function PremiumPage() {
   };
 
   const handleCancel = () => {
-    sessionStorage.setItem('isPremiumUser', 'false');
+    localStorage.setItem('isPremiumUser', 'false');
     setSuccessType('cancel');
     setTimeout(() => {
       navigate(-1);

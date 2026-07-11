@@ -18,12 +18,14 @@ import ChemicalCalculatorPage from './pages/stylist/ChemicalCalculatorPage';
 import ClientHistoryPage from './pages/stylist/ClientHistoryPage';
 import ClientListPage from './pages/stylist/ClientListPage';
 import InventoryManagementPage from './pages/stylist/InventoryManagementPage';
+import AuthModal from './pages/auth/AuthModal';
 import './styles/index.css';
 
 function AppHeader() {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const isStylistView = location.pathname.startsWith('/stylist/');
   const isPremiumUser = localStorage.getItem('isPremiumUser') === 'true';
@@ -101,8 +103,7 @@ function AppHeader() {
                   localStorage.removeItem('userName');
                   window.location.reload();
                 } else {
-                  // Simulate opening auth modal (since we don't have global state, we just navigate to a page that forces login, or alert)
-                  alert('デバッグパネルから「ログアウト(Auth解除)」するか、美容師の予約画面からログインモーダルを呼び出してください');
+                  setShowAuthModal(true);
                 }
               }}
             >
@@ -161,6 +162,18 @@ function AppHeader() {
             </div>
           )}
         </div>
+      )}
+
+      {showAuthModal && (
+        <AuthModal
+          onClose={() => setShowAuthModal(false)}
+          onSuccess={() => {
+            setShowAuthModal(false);
+            window.location.reload();
+          }}
+          title="ログイン / 会員登録"
+          subtitle="アカウントを作成して、さらに便利にアプリを使いましょう。"
+        />
       )}
     </header>
   );

@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Upload, X, ImageIcon, ChevronRight, ChevronLeft, SlidersHorizontal, AlertTriangle, CheckCircle2, Send, Tag, Waves } from 'lucide-react';
-import type { QuestionnaireData, HairColorDef } from '../../types';
-import { HAIR_COLOR_PALETTE } from '../../types';
+import type { QuestionnaireData } from '../../types';
 import { generateAIResponse, createInitialContext, type ChatContext } from '../../lib/aiChatEngine';
 import AuthModal from '../auth/AuthModal';
 import { desiredStyleApi, questionnaireApi } from '../../lib/api';
@@ -27,6 +26,14 @@ const PERM_STYLES = [
   { id: 'pin_perm', name: 'ピンパーマ', icon: '◎', intensity: 1, gender: ['mens'] as Gender[] },
 ];
 
+const PRESET_COLORS = [
+  '#ffcdd2', '#f8bbd0', '#e1bee7', '#d1c4e9', '#c5cae9', '#bbdefb', '#b3e5fc', '#b2ebf2', '#b2dfdb', '#c8e6c9', '#dcedc8', '#f0f4c3', '#fff9c4', '#ffecb3', '#ffe0b2', '#ffccbc', '#d7ccc8', '#f5f5f5',
+  '#e57373', '#f06292', '#ba68c8', '#9575cd', '#7986cb', '#64b5f6', '#4fc3f7', '#4dd0e1', '#4db6ac', '#81c784', '#aed581', '#dce775', '#fff176', '#ffd54f', '#ffb74d', '#ff8a65', '#a1887f', '#e0e0e0',
+  '#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722', '#795548', '#9e9e9e',
+  '#d32f2f', '#c2185b', '#7b1fa2', '#512da8', '#303f9f', '#1976d2', '#0288d1', '#0097a7', '#00796b', '#388e3c', '#689f38', '#afb42b', '#fbc02d', '#ffa000', '#f57c00', '#e64a19', '#5d4037', '#616161',
+  '#b71c1c', '#880e4f', '#4a148c', '#311b92', '#1a237e', '#0d47a1', '#01579b', '#006064', '#004d40', '#1b5e20', '#33691e', '#827717', '#f57f17', '#ff6f00', '#e65100', '#bf360c', '#3e2723', '#212121',
+];
+
 export default function SuggestStylePage() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('upload');
@@ -38,9 +45,9 @@ export default function SuggestStylePage() {
   const [dragOver, setDragOver] = useState(false);
 
   // Simulator state
-  const [selectedStyle, setSelectedStyle] = useState('medium');
-  const [selectedColor, setSelectedColor] = useState('#d4b895'); // default milk tea
-  const [selectedPerm, setSelectedPerm] = useState('none');
+  const [selectedStyle, setSelectedStyle] = useState<string>(BASE_STYLES[0].id);
+  const [selectedColor, setSelectedColor] = useState<string>('#d7ccc8'); // Default to a light brown
+  const [selectedPerm, setSelectedPerm] = useState<string>('none');
   const [genderFilter, setGenderFilter] = useState<Gender>('ladies');
   const [showWarning, setShowWarning] = useState(false);
   const [permWarning, setPermWarning] = useState('');
@@ -58,7 +65,7 @@ export default function SuggestStylePage() {
 
   // AI Suggestion Chat State
   const [chatContext, setChatContext] = useState<ChatContext>(createInitialContext());
-  const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'ai'; text: string; time: string }>>([
+  const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'ai'; text: string; time: string; imageUrl?: string }>>([
     {
       sender: 'ai',
       text: 'AIスタイリストのMiyabiです！診断結果に基づき、似合わせスタイルをご提案しました。\n\n💬 こんな相談ができます：\n• 「どんな髪型が似合う？」— 顔型分析に基づく提案\n• 「パーマをかけたい」— パーマの種類や可否判断\n• 「ダメージを抑えたい」— ケア方法の提案\n• 「朝のスタイリングを楽にしたい」— ライフスタイル相談\n\n何でもお気軽にご相談ください！',
@@ -69,6 +76,7 @@ export default function SuggestStylePage() {
   const [isTyping, setIsTyping] = useState(false);
   const [refinedDetails, setRefinedDetails] = useState<string[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatFileInputRef = useRef<HTMLInputElement>(null);
 
   // Helper to add custom styling tags
   const addRefinedDetail = (detail: string) => {
@@ -170,13 +178,14 @@ export default function SuggestStylePage() {
   };
 
   // AI Chat handler using the new engine
-  const handleSendMessage = (messageText: string) => {
-    if (!messageText.trim()) return;
+  const handleSendMessage = (messageText: string, imageUrl?: string) => {
+    if (!messageText.trim() && !imageUrl) return;
 
     const userMsg = {
       sender: 'user' as const,
       text: messageText,
-      time: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
+      time: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
+      imageUrl
     };
 
     setChatMessages(prev => [...prev, userMsg]);
@@ -184,7 +193,7 @@ export default function SuggestStylePage() {
     setIsTyping(true);
 
     setTimeout(() => {
-      const response = generateAIResponse(messageText, chatContext, qData);
+      const response = generateAIResponse(messageText, chatContext, qData, imageUrl);
 
       // Apply style/color/perm changes from AI
       if (response.styleChange) setSelectedStyle(response.styleChange);
@@ -211,7 +220,15 @@ export default function SuggestStylePage() {
         }
       ]);
       setIsTyping(false);
-    }, 1200);
+    }, 1500);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    handleSendMessage('こんな感じの色にしたいです', url);
+    e.target.value = '';
   };
 
   const handleComplete = () => {
@@ -414,7 +431,7 @@ export default function SuggestStylePage() {
           <div className="grid grid-cols-2 gap-lg" style={{ flex: 1, alignItems: 'stretch' }}>
             
             {/* COLUMN 1: Visual Simulator & Controls */}
-            <div className="flex flex-col gap-md">
+            <div className="flex flex-col gap-md" style={{ minWidth: 0 }}>
               {/* Main Preview Area */}
               <div
                 className="glass-card-static"
@@ -490,30 +507,30 @@ export default function SuggestStylePage() {
 
                 {/* Warning Alert */}
                 {showWarning && (
-                  <div className="animate-fade-in-up" style={{ position: 'absolute', bottom: '12px', left: '12px', right: '12px', background: 'rgba(245, 158, 11, 0.95)', backdropFilter: 'blur(10px)', padding: '0.625rem', borderRadius: 'var(--radius-md)', color: '#fff', fontSize: '0.7rem', display: 'flex', gap: '0.5rem', alignItems: 'flex-start', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+                  <div className="animate-fade-in-up" style={{ position: 'absolute', bottom: '12px', left: '12px', width: 'calc(100% - 24px)', background: 'var(--gradient-warning)', padding: '0.625rem', borderRadius: 'var(--radius-md)', color: '#fff', fontSize: '0.7rem', display: 'flex', gap: '0.5rem', alignItems: 'flex-start', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', zIndex: 10 }}>
                     <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
-                    <span><strong>AI診断:</strong> 黒染めの履歴があるため、この明るさのカラーは1回の施術では難しい可能性があります。</span>
+                    <span style={{ flex: 1, wordBreak: 'break-word', lineHeight: 1.4 }}><strong>AI診断:</strong> 黒染めの履歴があるため、この明るさのカラーは1回の施術では難しい可能性があります。</span>
                   </div>
                 )}
 
                 {/* Perm Warning */}
                 {permWarning && !showWarning && (
-                  <div className="animate-fade-in-up" style={{ position: 'absolute', bottom: '12px', left: '12px', right: '12px', background: 'rgba(239, 68, 68, 0.95)', backdropFilter: 'blur(10px)', padding: '0.625rem', borderRadius: 'var(--radius-md)', color: '#fff', fontSize: '0.7rem', display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                  <div className="animate-fade-in-up" style={{ position: 'absolute', bottom: '12px', left: '12px', width: 'calc(100% - 24px)', background: 'var(--gradient-danger)', padding: '0.625rem', borderRadius: 'var(--radius-md)', color: '#fff', fontSize: '0.7rem', display: 'flex', gap: '0.5rem', alignItems: 'flex-start', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', zIndex: 10 }}>
                     <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
-                    <span><strong>⚠️ パーマリスク:</strong> {permWarning}</span>
+                    <span style={{ flex: 1, wordBreak: 'break-word', lineHeight: 1.4 }}><strong>⚠️ パーマリスク:</strong> {permWarning}</span>
                   </div>
                 )}
               </div>
 
               {/* Controls Area */}
-              <div className="glass-card-static" style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+              <div className="glass-card-static" style={{ padding: 'var(--space-sm) var(--space-md)', width: '100%', minWidth: 0 }}>
                 {/* Style Selector */}
                 <div style={{ marginBottom: 'var(--space-sm)' }}>
                   <div className="flex items-center gap-sm text-sm text-secondary" style={{ marginBottom: 'var(--space-xs)', fontWeight: 600, fontSize: '0.75rem' }}>
                     <SlidersHorizontal size={12} />
                     ベーススタイル
                   </div>
-                  <div className="flex gap-xs overflow-x-auto hide-scrollbar">
+                  <div className="flex gap-xs hide-scrollbar" style={{ overflowX: 'auto', width: '100%', paddingBottom: '4px' }}>
                     {BASE_STYLES.map(style => (
                       <button
                         key={style.id}
@@ -533,36 +550,26 @@ export default function SuggestStylePage() {
                     <Sparkles size={12} />
                     髪色
                   </div>
-                  <div className="flex gap-md overflow-x-auto hide-scrollbar">
-                    {HAIR_COLOR_PALETTE.map((color: HairColorDef) => (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(18, 1fr)', gap: '2px', overflowX: 'auto', width: '100%', padding: '8px 0', margin: '-8px 0' }}>
+                    {PRESET_COLORS.map(color => (
                       <button
-                        key={color.id}
-                        onClick={() => setSelectedColor(color.id)}
+                        key={color}
+                        onClick={() => setSelectedColor(color)}
                         style={{
-                          all: 'unset',
+                          width: '100%',
+                          aspectRatio: '1/1',
+                          minWidth: '14px',
+                          background: color,
+                          border: selectedColor === color ? '2px solid white' : 'none',
+                          boxShadow: selectedColor === color ? '0 0 0 2px var(--color-primary)' : 'none',
+                          borderRadius: '2px',
                           cursor: 'pointer',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: '0.125rem',
-                          flexShrink: 0
+                          padding: 0,
+                          transform: selectedColor === color ? 'scale(1.2)' : 'scale(1)',
+                          zIndex: selectedColor === color ? 10 : 1,
+                          position: 'relative'
                         }}
-                      >
-                        <div 
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '50%',
-                            background: color.hex,
-                            boxShadow: selectedColor === color.id ? `0 0 0 2px var(--bg-primary), 0 0 0 3px ${color.hex}` : '0 2px 8px rgba(0,0,0,0.2)',
-                            transition: 'all 0.2s',
-                            transform: selectedColor === color.id ? 'scale(1.1)' : 'scale(1)'
-                          }}
-                        />
-                        <span style={{ fontSize: '0.6rem', color: selectedColor === color.id ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: selectedColor === color.id ? 700 : 400 }}>
-                          {color.name}
-                        </span>
-                      </button>
+                      />
                     ))}
                   </div>
                 </div>
@@ -591,7 +598,7 @@ export default function SuggestStylePage() {
                       </button>
                     </div>
                   </div>
-                  <div className="flex gap-xs overflow-x-auto hide-scrollbar">
+                  <div className="flex gap-xs hide-scrollbar" style={{ overflowX: 'auto', width: '100%', paddingBottom: '4px' }}>
                     {filteredPermStyles.map(perm => (
                       <button
                         key={perm.id}
@@ -609,7 +616,7 @@ export default function SuggestStylePage() {
             </div>
 
             {/* COLUMN 2: AI Stylist Chat & Tags */}
-            <div className="flex flex-col glass-card-static" style={{ padding: 'var(--space-md)', justifyContent: 'space-between', height: '100%', minHeight: '520px' }}>
+            <div className="flex flex-col glass-card-static" style={{ padding: 'var(--space-md)', justifyContent: 'space-between', height: '100%', minHeight: '400px', width: '100%', minWidth: 0 }}>
               
               <div className="flex flex-col" style={{ flex: 1, overflow: 'hidden' }}>
                 {/* AI Header */}
@@ -665,7 +672,8 @@ export default function SuggestStylePage() {
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 'var(--space-sm)',
-                    minHeight: '160px',
+                    minHeight: '200px',
+                    maxHeight: '400px',
                     border: '1px solid var(--border-subtle)'
                   }}
                 >
@@ -683,6 +691,11 @@ export default function SuggestStylePage() {
                         maxWidth: '85%'
                       }}
                     >
+                      {msg.imageUrl && (
+                        <div style={{ marginBottom: '8px' }}>
+                          <img src={msg.imageUrl} alt="Uploaded" style={{ maxWidth: '100%', borderRadius: '4px' }} />
+                        </div>
+                      )}
                       <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{msg.text}</p>
                       <span style={{ display: 'block', fontSize: '0.55rem', textAlign: 'right', marginTop: '2px', opacity: 0.6 }}>
                         {msg.time}
@@ -705,7 +718,7 @@ export default function SuggestStylePage() {
 
               {/* Chat Input & Suggestions */}
               <div>
-                <div className="flex gap-xs overflow-x-auto hide-scrollbar" style={{ marginBottom: 'var(--space-sm)', paddingBottom: '2px' }}>
+                <div className="flex gap-xs hide-scrollbar" style={{ overflowX: 'auto', marginBottom: 'var(--space-sm)', paddingBottom: '4px', width: '100%' }}>
                   {[
                     'どんな髪型が似合う？',
                     'パーマをかけたい',
@@ -717,7 +730,7 @@ export default function SuggestStylePage() {
                       key={suggestion}
                       className="chip"
                       onClick={() => handleSendMessage(suggestion)}
-                      style={{ cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '0.6rem', padding: '0.25rem 0.5rem', background: 'var(--bg-tertiary)' }}
+                      style={{ flexShrink: 0, cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '0.6rem', padding: '0.25rem 0.5rem', background: 'var(--bg-tertiary)' }}
                     >
                       + {suggestion}
                     </button>
@@ -725,16 +738,25 @@ export default function SuggestStylePage() {
                 </div>
 
                 <div className="flex gap-sm">
+                  <input type="file" accept="image/*" hidden ref={chatFileInputRef} onChange={handleImageSelect} />
+                  <button 
+                    className="btn btn-secondary btn-icon" 
+                    onClick={() => chatFileInputRef.current?.click()}
+                    style={{ borderRadius: 'var(--radius-full)', padding: '0.5rem' }}
+                    title="画像をアップロード"
+                  >
+                    <ImageIcon size={18} />
+                  </button>
                   <input
                     type="text"
-                    className="chat-input"
+                    className="chat-input flex-1"
                     placeholder="相談内容を入力..."
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSendMessage(chatInput);
                     }}
-                    style={{ fontSize: '0.75rem', padding: '0.5rem 0.875rem' }}
+                    style={{ fontSize: '0.875rem', padding: '0.625rem 1rem', flex: 1, border: '1px solid var(--border-default)', borderRadius: 'var(--radius-full)', background: 'var(--bg-elevated)', color: 'var(--text-primary)', outline: 'none' }}
                   />
                   <button 
                     className="btn btn-primary"
@@ -751,7 +773,7 @@ export default function SuggestStylePage() {
           </div>
 
           {/* Bottom Actions */}
-          <div className="flex gap-md" style={{ marginTop: 'var(--space-md)' }}>
+          <div className="flex flex-mobile-col gap-md gap-mobile-sm" style={{ marginTop: 'var(--space-md)' }}>
             <button 
               className="btn btn-secondary btn-lg" 
               onClick={() => setStep('upload')}

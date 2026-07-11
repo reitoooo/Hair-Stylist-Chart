@@ -51,6 +51,7 @@ export function generateAIResponse(
   message: string,
   context: ChatContext,
   qData: QuestionnaireData | null,
+  imageUrl?: string,
 ): AIResponse {
   const textLower = message.toLowerCase();
   const tags: string[] = [];
@@ -59,6 +60,23 @@ export function generateAIResponse(
   let colorChange: string | undefined;
   let permChange: string | undefined;
   let followUpQuestion: string | undefined;
+
+  // ─── Image Upload Handling ───
+  if (imageUrl) {
+    tags.push('画像解析：希望イメージ');
+    colorChange = 'ash'; // 模擬的にアッシュに変更
+    text = `素敵な画像ですね！ありがとうございます。
+AIによる画像解析を行いました🔍
+
+🎨 **カラー分析**
+• ベース: 透明感のあるアッシュグレージュ (10-12トーン)
+• 特徴: 光に透けるような柔らかい質感で、赤みを抑えた色合いです。
+
+${qData?.has_black_dye ? '⚠️ **黒染め履歴の影響**\n現在の黒染め履歴がある状態からこの透明感を出すには、ケアブリーチでの丁寧なベースメイク（色抜き）が必要になります。' : 'お客様の現在の髪の状態からであれば、ダブルカラー（ブリーチなし）でもかなり近い色味が再現できそうです！'}
+
+この「アッシュグレージュ」をベースにシミュレーションを更新しました。他にご希望はありますか？`;
+    return { text, tags, styleChange, colorChange, permChange };
+  }
 
   // ─── Face Shape & Suitability Consultation ───
   if (matchesAny(textLower, ['似合う', '顔型', '顔の形', '丸顔', '面長', '卵型', 'フェイス'])) {
