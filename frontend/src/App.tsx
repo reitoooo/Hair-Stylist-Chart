@@ -32,8 +32,8 @@ function AppHeader() {
     <header className="app-header">
       <div className="container flex items-center justify-between" style={{ maxWidth: '100%' }}>
         <Link to="/" className="logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <img src="/logo.png" alt="HairMatch Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }} />
-          <span>HairMatch</span>
+          <img src="/logo.png" alt="StyleRecipe Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }} />
+          <span>StyleRecipe</span>
         </Link>
 
         <nav className="hide-mobile">

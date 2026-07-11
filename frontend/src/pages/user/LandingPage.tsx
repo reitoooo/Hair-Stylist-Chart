@@ -238,7 +238,7 @@ export default function LandingPage() {
       <section style={{ padding: 'var(--space-3xl) 0' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 'var(--space-3xl)' }}>
-            <h2 className="section-title">HairMatchが選ばれる理由</h2>
+            <h2 className="section-title">StyleRecipeが選ばれる理由</h2>
           </div>
 
           <div className="grid grid-cols-3 gap-lg stagger">
@@ -331,7 +331,7 @@ export default function LandingPage() {
       >
         <div className="container flex items-center justify-between" style={{ flexWrap: 'wrap', gap: 'var(--space-md)' }}>
           <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-muted)' }}>
-            © 2026 HairMatch. All rights reserved.
+            © 2026 StyleRecipe. All rights reserved.
           </div>
           <div className="flex gap-lg" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-muted)' }}>
             <a href="#" style={{ color: 'var(--text-muted)' }}>利用規約</a>
