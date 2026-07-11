@@ -191,7 +191,7 @@ function DebugPanel() {
   };
 
   return (
-    <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999 }}>
+    <div className="debug-panel" style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999 }}>
       {open ? (
         <div className="glass-card-static" style={{ padding: 'var(--space-md)', width: '240px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.2)' }}>
           <div className="flex justify-between items-center" style={{ marginBottom: 'var(--space-sm)' }}>

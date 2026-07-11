@@ -1021,6 +1021,58 @@ input, textarea, select {
   }
 
   .hide-mobile { display: none !important; }
+
+  /* Mobile Layout Utilities */
+  .flex-mobile-col {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  
+  .flex-mobile-col > * {
+    width: 100%;
+  }
+
+  .gap-mobile-sm {
+    gap: var(--space-sm) !important;
+  }
+  
+  .w-full-mobile {
+    width: 100% !important;
+  }
+  
+  .debug-panel {
+    bottom: 80px !important;
+  }
+  
+  /* Step Indicator Mobile */
+  .step-indicator {
+    padding: var(--space-md) 0;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+  
+  .step {
+    gap: 4px;
+  }
+  
+  .step-number {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+  
+  .step-label {
+    display: none;
+  }
+  
+  .step.active .step-label {
+    display: block;
+    font-size: 0.65rem;
+  }
+  
+  .items-start-mobile {
+    align-items: flex-start !important;
+  }
 }
 
 @media (min-width: 769px) {

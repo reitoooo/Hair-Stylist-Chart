@@ -826,11 +826,11 @@ const getRiskLabel = (score: number) => {
       <div className="container" style={{ padding: 'var(--space-xl) var(--space-lg)', maxWidth: '1000px' }}>
         
         {/* Header */}
-        <div className="flex items-center justify-between" style={{ marginBottom: 'var(--space-lg)' }}>
-          <button className="btn btn-ghost" onClick={() => navigate('/stylist/dashboard')}>
+        <div className="flex items-center justify-between flex-mobile-col items-start-mobile" style={{ marginBottom: 'var(--space-lg)', gap: 'var(--space-sm)' }}>
+          <button className="btn btn-ghost" onClick={() => navigate('/stylist/dashboard')} style={{ paddingLeft: 0 }}>
             <ChevronLeft size={18} /> ダッシュボードに戻る
           </button>
-          <div className="flex items-center gap-sm">
+          <div className="flex items-center gap-sm flex-wrap w-full-mobile">
             <button 
               className="btn btn-ghost"
               onClick={() => navigate(`/stylist/client/client-${bookingId?.split('-')[1]}`)}

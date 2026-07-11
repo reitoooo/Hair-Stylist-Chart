@@ -116,7 +116,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Tab filter */}
-        <div className="flex gap-sm" style={{ marginBottom: 'var(--space-lg)' }}>
+        <div className="flex gap-sm hide-scrollbar" style={{ marginBottom: 'var(--space-lg)', overflowX: 'auto', paddingBottom: '4px' }}>
           {[
             { key: 'pending' as const, label: `承認待ち (${pendingCount})` },
             { key: 'approved' as const, label: `承認済み (${approvedCount})` },
@@ -126,7 +126,7 @@ export default function DashboardPage() {
               key={tab.key}
               className={`chip ${activeTab === tab.key ? 'chip-active' : ''}`}
               onClick={() => setActiveTab(tab.key)}
-              style={{ cursor: 'pointer', padding: '0.5rem 1rem', fontSize: 'var(--font-size-sm)' }}
+              style={{ cursor: 'pointer', padding: '0.5rem 1rem', fontSize: 'var(--font-size-sm)', flexShrink: 0 }}
             >
               {tab.label}
             </button>
@@ -207,16 +207,16 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              <div className="flex gap-sm flex-wrap">
+              <div className="flex gap-sm flex-wrap flex-mobile-col">
                 <button
-                  className="btn btn-outline btn-sm"
+                  className="btn btn-outline btn-sm w-full-mobile"
                   onClick={() => navigate(`/stylist/recipe/${booking.id}`)}
                 >
                   <Sparkles size={14} />
                   AIレシピを見る
                 </button>
                 <button
-                  className="btn btn-ghost btn-sm"
+                  className="btn btn-ghost btn-sm w-full-mobile"
                   onClick={() => navigate(`/stylist/client/client-${booking.id.split('-')[1]}`)}
                 >
                   <User size={14} />
@@ -225,14 +225,14 @@ export default function DashboardPage() {
                 {booking.status === 'pending' && (
                   <>
                     <button
-                      className="btn btn-success btn-sm"
+                      className="btn btn-success btn-sm w-full-mobile"
                       onClick={() => handleStatusChange(booking.id, 'approved')}
                     >
                       <CheckCircle size={14} />
                       承認
                     </button>
                     <button
-                      className="btn btn-danger btn-sm"
+                      className="btn btn-danger btn-sm w-full-mobile"
                       onClick={() => handleStatusChange(booking.id, 'rejected')}
                     >
                       <XCircle size={14} />

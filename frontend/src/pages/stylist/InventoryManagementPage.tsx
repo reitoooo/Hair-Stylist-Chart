@@ -83,14 +83,14 @@ export default function InventoryManagementPage() {
             {inventory.map((item, idx) => (
               <div 
                 key={idx} 
-                className="flex items-center justify-between p-md rounded-md bg-tertiary border border-default transition-all"
+                className="flex items-center justify-between p-md rounded-md bg-tertiary border border-default transition-all flex-mobile-col gap-mobile-sm"
                 style={{ opacity: item.is_available ? 1 : 0.6 }}
               >
                 <div style={{ flex: 1 }}>
                   <div className="font-bold">{item.brand_name}</div>
                   <div className="text-sm text-secondary">{item.product_line}</div>
                 </div>
-                <div className="flex items-center gap-md">
+                <div className="flex items-center gap-md w-full-mobile" style={{ justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <input
                       type="number"
